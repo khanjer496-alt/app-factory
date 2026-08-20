@@ -1,0 +1,10 @@
+{
+  // Merge into the product Worker's wrangler.jsonc.
+  // The dataset is created automatically on first write.
+  "analytics_engine_datasets": [
+    {
+      "binding": "ANALYTICS",
+      "dataset": "my_product_events"
+    }
+  ]
+}

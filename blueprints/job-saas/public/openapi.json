@@ -1,0 +1,174 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Job Agent API",
+    "version": "1.0.0",
+    "description": "User-scoped job matching, truthful resume tailoring and controlled application workflows for AI agents."
+  },
+  "servers": [
+    {
+      "url": "/v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerApiKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "af_live_..."
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerApiKey": []
+    }
+  ],
+  "paths": {
+    "/jobs": {
+      "get": {
+        "summary": "List matched jobs",
+        "parameters": [
+          {
+            "name": "min_score",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matched jobs"
+          }
+        }
+      }
+    },
+    "/jobs/{id}/score": {
+      "post": {
+        "summary": "Score a discovered job",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Score and explanation"
+          }
+        }
+      }
+    },
+    "/jobs/{id}/tailor": {
+      "post": {
+        "summary": "Prepare a truthful tailored application package",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Prepared application"
+          }
+        }
+      }
+    },
+    "/applications": {
+      "get": {
+        "summary": "List applications",
+        "responses": {
+          "200": {
+            "description": "Applications"
+          }
+        }
+      }
+    },
+    "/applications/{id}": {
+      "get": {
+        "summary": "Get one application",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Application state"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/applications/{id}/submit": {
+      "post": {
+        "summary": "Queue a verified application for submission",
+        "description": "Requires applications:submit scope and body {\"confirm\":true}. Server still enforces ownership, truth QA and unresolved-question checks.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "confirm"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Queued"
+          },
+          "409": {
+            "description": "Blocked by application guardrail"
+          }
+        }
+      }
+    }
+  }
+}

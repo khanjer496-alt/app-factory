@@ -1,0 +1,20 @@
+# Job Application Agent
+
+> Job-search and application infrastructure for AI agents.
+
+Public docs:
+- /agents - agent capabilities and connection model
+- /api - REST API quickstart
+- /mcp-docs - MCP quickstart and tool list
+- /job-search-api - job discovery/matching API overview
+- /resume-tailoring-api - truthful resume tailoring API overview
+- /ai-job-application-agent - full application-agent overview
+
+Core capabilities:
+- search matched jobs
+- explain fit scores
+- tailor resumes from verified career facts
+- truth-check generated claims
+- prepare applications
+- submit only with explicit authorization
+- track application status

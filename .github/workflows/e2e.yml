@@ -1,0 +1,23 @@
+name: E2E Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: cp apps/starter-web/.dev.vars.example apps/starter-web/.dev.vars
+      - run: cp apps/starter-web/.env.example apps/starter-web/.env.local
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

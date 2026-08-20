@@ -1,0 +1,13 @@
+{
+  // Merge this binding into the product's wrangler.jsonc.
+  // The sender domain must be onboarded in Cloudflare Email Service.
+  "send_email": [
+    {
+      "name": "EMAIL"
+    }
+  ]
+
+  // For local development, Cloudflare's current docs also support a remote
+  // binding. Follow the current Email Service local-development docs rather
+  // than committing production credentials.
+}

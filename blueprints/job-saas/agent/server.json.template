@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.YOUR_DOMAIN/job-application-agent",
+  "title": "Job Application Agent",
+  "description": "Search matched jobs, score fit, tailor truthful resumes, prepare applications, and track outcomes.",
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://YOUR_DOMAIN/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Enter the full value: Bearer af_live_... (create a scoped key in the Developer console)",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

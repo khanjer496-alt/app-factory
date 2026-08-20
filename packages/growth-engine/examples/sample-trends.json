@@ -1,0 +1,30 @@
+[
+  {
+    "id": "trend_1",
+    "source": "manual",
+    "observedAt": "2026-08-16T18:00:00Z",
+    "region": "US",
+    "language": "en",
+    "format": "pov",
+    "text": "POV: you finally stop doing X manually",
+    "keywords": [
+      "pov",
+      "automation"
+    ],
+    "confidence": 0.85
+  },
+  {
+    "id": "trend_2",
+    "source": "manual",
+    "observedAt": "2026-08-16T18:00:00Z",
+    "region": "GB",
+    "language": "en",
+    "format": "slideshow",
+    "text": "3 mistakes people make when ...",
+    "keywords": [
+      "list",
+      "mistakes"
+    ],
+    "confidence": 0.8
+  }
+]

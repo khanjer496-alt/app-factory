@@ -1,0 +1,38 @@
+{
+  "name": "@app-factory/starter-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "deploy": "wrangler deploy",
+    "check": "npm run types:check && tsc -b && vite build && wrangler deploy --dry-run",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "types": "wrangler types worker-configuration.d.ts --env-interface CloudflareBindings --strict-vars false",
+    "types:check": "wrangler types worker-configuration.d.ts --env-interface CloudflareBindings --strict-vars false --check",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "db:backup": "mkdir -p backups && wrangler d1 export DB --remote --output backups/app-db.sql"
+  },
+  "dependencies": {
+    "better-auth": "^1.6.26",
+    "hono": "4.13.3",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-router-dom": "^7.8.0",
+    "stripe": "^22.3.2"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.53.1",
+    "@playwright/test": "^1.55.0",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.1",
+    "typescript": "5.9.3",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.0",
+    "wrangler": "4.125.0"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "app-factory",
+  "private": true,
+  "version": "1.1.0",
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --filter=@app-factory/starter-web",
+    "build": "turbo run build",
+    "check": "turbo run check",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e --filter=@app-factory/starter-web",
+    "deploy:starter": "turbo run deploy --filter=@app-factory/starter-web",
+    "db:migrate:local": "npm --workspace @app-factory/starter-web run db:migrate:local",
+    "db:migrate:remote": "npm --workspace @app-factory/starter-web run db:migrate:remote",
+    "db:backup": "npm --workspace @app-factory/starter-web run db:backup",
+    "security": "bash scripts/security-check.sh",
+    "new-app": "node scripts/new-app.mjs",
+    "affected": "turbo run check test build --affected",
+    "graph": "turbo run build --dry=json",
+    "new-job-saas": "node scripts/new-job-saas.mjs"
+  },
+  "devDependencies": {
+    "turbo": "2.10.8"
+  }
+}

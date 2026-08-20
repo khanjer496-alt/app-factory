@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "app-factory-growth-engine",
+  "main": "src/cloudflare/daily-workflow.ts",
+  "compatibility_date": "2026-08-20",
+  "workflows": [
+    {
+      "name": "daily-growth-workflow",
+      "binding": "DAILY_GROWTH_WORKFLOW",
+      "class_name": "DailyGrowthWorkflow",
+      "schedules": ["0 4 * * *"]
+    },
+    {
+      "name": "approval-publish-workflow",
+      "binding": "APPROVAL_PUBLISH_WORKFLOW",
+      "class_name": "ApprovalPublishWorkflow"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "GROWTH_DB",
+      "database_name": "app-factory-growth",
+      "database_id": "REPLACE_ME"
+    }
+  ],
+  "vars": {
+    "OPENAI_CONTENT_MODEL": "REPLACE_WITH_COST_SENSITIVE_MODEL_ID",
+    "OPENAI_TREND_MODEL": "REPLACE_WITH_WEB_SEARCH_CAPABLE_MODEL_ID",
+    "GROWTH_ENABLE_GOOGLE_TRENDS": "true"
+  }
+}

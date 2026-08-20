@@ -1,0 +1,10 @@
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-5.6-luna
+# Browser/ATS submission service. Use Cloudflare Browser Run/Playwright or another approved provider.
+APPLICATION_AUTOMATION_ENDPOINT=
+APPLICATION_AUTOMATION_TOKEN=
+# Public candidate-site discovery for sites such as Workday where a browser-backed resolver is needed.
+JOB_DISCOVERY_AUTOMATION_ENDPOINT=
+JOB_DISCOVERY_AUTOMATION_TOKEN=
+# Proof is expected, but a missing screenshot never triggers a duplicate resubmission.
+REQUIRE_SUBMISSION_PROOF=true

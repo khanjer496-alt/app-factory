@@ -1,0 +1,10 @@
+BETTER_AUTH_SECRET=replace-with-at-least-32-random-characters
+STRIPE_SECRET_KEY=sk_test_replace
+STRIPE_WEBHOOK_SECRET=whsec_replace
+STRIPE_PRICE_PRO_MONTHLY=price_replace
+STRIPE_PRICE_PRO_ANNUAL=price_replace
+TURNSTILE_SECRET_KEY=
+ADMIN_EMAIL=owner@example.com
+# Optional OAuth
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

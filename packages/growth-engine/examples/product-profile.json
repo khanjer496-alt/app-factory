@@ -1,0 +1,55 @@
+{
+  "productId": "applyflow",
+  "name": "ApplyFlow",
+  "domain": "applyflow.example",
+  "oneLiner": "An AI job-search agent that finds strong matches and prepares tailored applications.",
+  "audiences": [
+    "active job seekers worldwide",
+    "professionals changing roles"
+  ],
+  "positioning": [
+    "job search operating system",
+    "application preparation with user control"
+  ],
+  "contentPillars": [
+    "job-search mistakes",
+    "CV tailoring",
+    "product demos",
+    "AI agent workflows"
+  ],
+  "allowedClaims": [
+    "tailors a CV using the user's verified career profile",
+    "ranks jobs against user preferences"
+  ],
+  "prohibitedClaims": [
+    "guaranteed job",
+    "guaranteed interview",
+    "guaranteed salary"
+  ],
+  "languages": [
+    "en"
+  ],
+  "ctas": [
+    {
+      "label": "Try ApplyFlow",
+      "url": "https://applyflow.example"
+    }
+  ],
+  "brand": {
+    "voice": [
+      "direct",
+      "helpful",
+      "professional"
+    ],
+    "avoid": [
+      "hype",
+      "fake testimonials"
+    ]
+  },
+  "autonomy": {
+    "mode": "review",
+    "maxPublishesPerDay": 6,
+    "maxSpendUsdPerDay": 10,
+    "minAutoPublishConfidence": 0.92
+  }
+}
