@@ -44,7 +44,8 @@ export function Login({ signup = false }: { signup?: boolean }) {
       : await authClient.signIn.email({ email, password, callbackURL: next, fetchOptions });
     setBusy(false);
     if (result.error) return setError(result.error.message || "Authentication failed");
-    if (signup) return setSuccess("Account created. Check your inbox and verify your email. The link brings you straight back.");
+    // No session token means email verification is required before signing in.
+    if (signup && !result.data?.token) return setSuccess("Account created. Check your inbox and verify your email. The link brings you straight back.");
     navigate(next);
   }
 

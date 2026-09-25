@@ -56,8 +56,8 @@ plans.post("/orders", async (c) => {
     return c.json({ url: session.url });
   }
 
-  // Local demo mode: explicit opt-in, development only, never when Stripe is configured.
-  if (c.env.APP_ENV === "development" && c.env.DEMO_CHECKOUT === "true") {
+  // Demo mode: explicit opt-in, local development or the client preview only, never when Stripe is configured.
+  if ((c.env.APP_ENV === "development" || c.env.APP_ENV === "preview") && c.env.DEMO_CHECKOUT === "true") {
     await activateOrder(c.env, orderId, null);
     return c.json({ url: "/app?checkout=demo" });
   }

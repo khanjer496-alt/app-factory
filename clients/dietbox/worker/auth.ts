@@ -16,7 +16,8 @@ export function createAuth(env: Env, ctx?: WaitUntilContext) {
     trustedOrigins: [env.APP_URL],
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: true,
+      // The client preview has no email binding, so preview sign-ups go straight in.
+      requireEmailVerification: env.APP_ENV !== "preview",
       minPasswordLength: 10,
       maxPasswordLength: 128,
       revokeSessionsOnPasswordReset: true,

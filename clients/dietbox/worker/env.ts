@@ -8,6 +8,6 @@ export interface Env extends CloudflareBindings {
   STRIPE_PRICE_PRO_ANNUAL?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
-  /** Local demo only: "true" activates plans without Stripe when APP_ENV=development and Stripe is not configured. */
+  /** Demo only: "true" activates plans without Stripe when APP_ENV is development or preview and Stripe is not configured. */
   DEMO_CHECKOUT?: string;
 }

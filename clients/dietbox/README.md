@@ -29,6 +29,16 @@ Verification emails are written to `.wrangler/tmp/email/…` locally (path print
 - `src/pages/*` — Landing, Menu, Builder, Dashboard, Auth, Admin.
 - `public/brand/` — logo files taken from dietbox.ae (raster; request vectors), `public/meals/` + `public/scenes/` — placeholder photography (Unsplash).
 
+## Client preview (workers.dev)
+
+```bash
+export CLOUDFLARE_API_TOKEN=…   # Workers Scripts:Edit + D1:Edit
+export CLOUDFLARE_ACCOUNT_ID=…
+./scripts/deploy-preview.sh      # prints https://dietbox-preview.<subdomain>.workers.dev
+```
+
+The `preview` environment has its own D1 database. Sign-ups skip email verification there (no email binding), and checkout runs in demo mode (no card needed). Don't use it for real customers.
+
 ## Payments
 
 Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`, point a Stripe webhook at `/api/billing/webhook` (`checkout.session.completed`). `DEMO_CHECKOUT` only works when `APP_ENV=development` **and** Stripe is not configured.

@@ -13,8 +13,11 @@ export async function cleanupBeforeAuthUserDelete(env: Env, user: { id: string; 
 
   const owned = await env.DB.prepare("SELECT r2_key FROM files WHERE user_id=?").bind(user.id).all<{ r2_key: string }>();
   const keys = owned.results.map((x) => x.r2_key);
-  for (let i = 0; i < keys.length; i += 500) {
-    await env.FILES.delete(keys.slice(i, i + 500));
+  const bucket = env.FILES;
+  if (bucket) {
+    for (let i = 0; i < keys.length; i += 500) {
+      await bucket.delete(keys.slice(i, i + 500));
+    }
   }
 
   await env.DB.prepare('DELETE FROM "verification" WHERE identifier=? OR identifier=?').bind(user.email, user.id).run();

@@ -41,5 +41,34 @@
     {
       "name": "EMAIL"
     }
-  ]
+  ],
+  // Client preview on workers.dev (scripts/deploy-preview.sh fills the database id and URLs).
+  // No R2 or email bindings: uploads are off for Dietbox and preview sign-ups skip email verification.
+  "env": {
+    "preview": {
+      "name": "dietbox-preview",
+      "vars": {
+        "APP_NAME": "Dietbox",
+        "APP_ENV": "preview",
+        "APP_URL": "https://dietbox-preview.workers.dev",
+        "BETTER_AUTH_URL": "https://dietbox-preview.workers.dev",
+        "EMAIL_FROM": "Dietbox <noreply@example.com>",
+        "TURNSTILE_SITE_KEY": ""
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "dietbox-preview-db",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "db/migrations"
+        }
+      ],
+      "analytics_engine_datasets": [
+        {
+          "binding": "ANALYTICS",
+          "dataset": "dietbox_preview_events"
+        }
+      ]
+    }
+  }
 }
