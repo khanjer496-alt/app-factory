@@ -9,7 +9,7 @@ Dietbox sells prepaid, chef-cooked meal plans portioned to a customer's goal and
 ## Market (explicit regional product — see GLOBAL_FIRST.md)
 
 1. **Target region:** United Arab Emirates only (delivery to all 7 emirates).
-2. **Languages:** English at launch. Arabic is phase 2 (RTL, font pairing in brand guidelines §4).
+2. **Languages:** English and Arabic. The switch is in the nav (`?lang=ar` also works). Arabic renders right-to-left with Alexandria and IBM Plex Sans Arabic, and keeps Latin digits. Strings live in `src/i18n/ar.ts` and dish names in `src/i18n/catalog-ar.ts`. `tests/i18n.test.ts` fails if a UI string has no Arabic entry. The kitchen admin screen stays English. The Arabic copy is machine-drafted, so a native copywriter should review it before launch.
 3. **Pricing/currency:** AED, VAT-inclusive (5%). Prices are computed server-side from `shared/catalog.ts` and charged via Stripe Checkout (`mode=payment`, `currency=aed`).
 4. **Legal/compliance:** UAE PDPL (privacy), UAE consumer protection and health-advertising rules (no medical/guaranteed-result claims), allergen disclosure.
 5. **Acquisition channels:** Instagram/TikTok, gyms & studios partnerships, Google search (Dubai / Abu Dhabi), referral.
@@ -55,4 +55,4 @@ These are brand propositions written for the redesign. Dietbox must confirm or e
 
 ## Out of scope (next)
 
-Menu CMS in D1 for the kitchen team · Arabic/RTL · promo codes · gift cards · renewals/auto-reorder · rider app / route optimisation · WhatsApp notifications via the email/notification adapter.
+Menu CMS in D1 for the kitchen team · promo codes · gift cards · renewals/auto-reorder · rider app / route optimisation · WhatsApp notifications via the email/notification adapter.

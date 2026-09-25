@@ -1,31 +1,33 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform, useInView } from "motion/react";
-import { EMIRATES, MEALS, MEALS_BY_ID, PROGRAMS, quote, type Meal, type ProgramId } from "../../shared/catalog";
+import { AnimatePresence, motion, useInView, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { MEALS, MEALS_BY_ID, PROGRAMS, PROGRAMS_BY_ID, quote, type Meal, type ProgramId } from "../../shared/catalog";
 import { ACTIVITY, GOAL_PROGRAM, dailyTarget, macroSplit, type Body, type Goal } from "../../shared/nutrition";
 import { Arrow, Eyebrow, Ticker } from "../components/brand";
 import { Counter, EASE_OUT, Lines, Reveal } from "../components/motion";
 import { MacroRing, MealCard, MealDetail, Sheet } from "../components/meal";
 import { Footer } from "../components/layout";
 import { aed } from "../lib/format";
+import { useI18n } from "../i18n";
 
 export default function Landing() {
+  const { t, c } = useI18n();
   const [openMeal, setOpenMeal] = useState<Meal | null>(null);
   return (
     <>
       <Hero />
-      <Ticker items={["High protein", "Chef-cooked daily", "Macro-counted", "Delivered 5–8 AM", "Swap any meal", "Skip any day", "5 programmes"]} />
+      <Ticker items={[t("High protein"), t("Chef-cooked daily"), t("Macro-counted"), t("Delivered 5–8 AM"), t("Swap any meal"), t("Skip any day")]} />
       <Goals />
       <HowItWorks />
       <MenuPreview onOpen={setOpenMeal} />
       <Calculator />
       <Pricing />
-      <Why />
+      <Guarantees />
       <Faq />
       <FinalCta />
       <Footer />
-      <Sheet open={!!openMeal} onClose={() => setOpenMeal(null)} label={openMeal?.name || "Meal"}>
-        {openMeal && <MealDetail meal={openMeal} footer={<Link className="btn primary" to="/start">Get it in my plan <Arrow /></Link>} />}
+      <Sheet open={!!openMeal} onClose={() => setOpenMeal(null)} label={openMeal ? c.meal(openMeal) : t("Meal")}>
+        {openMeal && <MealDetail meal={openMeal} footer={<Link className="btn primary" to="/start">{t("Get it in my plan")} <Arrow /></Link>} />}
       </Sheet>
     </>
   );
@@ -34,20 +36,17 @@ export default function Landing() {
 /* ---------------------------------- Hero ---------------------------------- */
 
 function Hero() {
+  const { t } = useI18n();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const visualY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
-  const copyY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const copyY = useTransform(scrollYProgress, [0, 1], ["0%", "24%"]);
   const fade = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   // Spring-smoothed pointer tilt: decorative, so it gets momentum instead of 1:1 tracking.
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
-  const rx = useSpring(useTransform(my, [-1, 1], [8, -8]), { stiffness: 120, damping: 18 });
-  const ry = useSpring(useTransform(mx, [-1, 1], [-10, 10]), { stiffness: 120, damping: 18 });
-  const chipX = useSpring(useTransform(mx, [-1, 1], [-18, 18]), { stiffness: 90, damping: 16 });
-  const chipY = useSpring(useTransform(my, [-1, 1], [-14, 14]), { stiffness: 90, damping: 16 });
-
+  const rx = useSpring(useTransform(my, [-1, 1], [6, -6]), { stiffness: 120, damping: 18 });
+  const ry = useSpring(useTransform(mx, [-1, 1], [-8, 8]), { stiffness: 120, damping: 18 });
   function onMove(e: React.PointerEvent) {
     if (e.pointerType !== "mouse") return;
     const r = e.currentTarget.getBoundingClientRect();
@@ -62,71 +61,56 @@ function Hero() {
       <div className="heroGrid">
         <motion.div className="heroCopy" style={{ y: copyY, opacity: fade }}>
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE_OUT }}>
-            <Eyebrow tone="dark">Meal plans · Delivered daily across the UAE</Eyebrow>
+            <Eyebrow tone="dark">{t("Meal plans · Delivered daily across the UAE")}</Eyebrow>
           </motion.div>
-          <Lines as="h1" immediate className="display xl" lines={["Eat for the", "body you're", <em key="b">building.</em>]} />
+          <Lines as="h1" immediate className="display xl" lines={[t("Eat for the"), t("body you're"), <em key="b">{t("building.")}</em>]} />
           <motion.p className="heroLead" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.8, ease: EASE_OUT }}>
-            Chef-cooked meals, weighed to your macros and at your door by 8&nbsp;AM. Swap, skip or pause in two taps.
+            {t("Chef-cooked meals, weighed to your macros and at your door by 8 AM.")}
           </motion.p>
           <motion.div className="heroActions" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.8, ease: EASE_OUT }}>
-            <Link to="/start" className="btn primary lg">Build my plan <Arrow /></Link>
-            <Link to="/menu" className="btn ghost lg onDark">See this week's menu</Link>
+            <Link to="/start" className="btn primary lg">{t("Build my plan")} <Arrow /></Link>
+            <Link to="/menu" className="btn ghost lg onDark">{t("See the menu")}</Link>
           </motion.div>
-          <motion.dl className="heroStats" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.8 }}>
-            <div><dt>Programmes</dt><dd><Counter value={PROGRAMS.length} /></dd></div>
-            <div><dt>Dishes in rotation</dt><dd><Counter value={MEALS.length} /></dd></div>
-            <div><dt>Meals a day</dt><dd>2–5</dd></div>
-          </motion.dl>
         </motion.div>
 
-        <motion.div className="heroVisual" style={{ y: visualY }}>
-          <motion.div className="heroDisc" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.2, ease: EASE_OUT }} />
-          <motion.div className="heroPlateWrap" style={{ rotateX: rx, rotateY: ry }} initial={{ opacity: 0, scale: 0.85, rotate: -25 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 1.4, ease: EASE_OUT, delay: 0.1 }}>
-            <img className="heroPlate" src="/scenes/hero-bowl.webp" alt="Avocado quinoa bowl with chilli and black sesame" width={1600} height={1600} fetchPriority="high" />
+        <div className="heroVisual">
+          <motion.div className="heroDisc" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.2, ease: EASE_OUT }} />
+          <motion.div className="heroPlateWrap" style={{ rotateX: rx, rotateY: ry }} initial={{ opacity: 0, scale: 0.9, rotate: -20 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 1.4, ease: EASE_OUT, delay: 0.1 }}>
+            <img className="heroPlate" src="/scenes/hero-bowl.webp" alt={t("Avocado quinoa bowl")} width={1600} height={1600} fetchPriority="high" />
           </motion.div>
-          <motion.div className="orbit" style={{ x: chipX, y: chipY }}>
-            <HeroChip className="c1" delay={0.9}>{hero.name}</HeroChip>
-            <HeroChip className="c2" delay={1.05}><b>{hero.kcal}</b> kcal</HeroChip>
-            <HeroChip className="c3" delay={1.2}><span className="pulse" /> Delivered 5–8 AM</HeroChip>
-            <HeroChip className="c4" delay={1.35}>P {hero.protein} · C {hero.carbs} · F {hero.fat}</HeroChip>
-          </motion.div>
-        </motion.div>
+          <motion.span className="heroChip c2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1, duration: 0.7, ease: EASE_OUT }}>
+            <span className="float"><b>{hero.kcal}</b> {t("kcal")}</span>
+          </motion.span>
+          <motion.span className="heroChip c3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.15, duration: 0.7, ease: EASE_OUT }}>
+            <span className="float"><span className="pulse" /> {t("Delivered 5–8 AM")}</span>
+          </motion.span>
+        </div>
       </div>
-      <a href="#goals" className="scrollCue" aria-label="Scroll to programmes"><span /></a>
     </section>
-  );
-}
-
-function HeroChip({ children, className, delay }: { children: React.ReactNode; className: string; delay: number }) {
-  return (
-    <motion.span className={`heroChip ${className}`} initial={{ opacity: 0, scale: 0.9, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ delay, duration: 0.7, ease: EASE_OUT }}>
-      <span className="float">{children}</span>
-    </motion.span>
   );
 }
 
 /* ---------------------------------- Goals --------------------------------- */
 
 function Goals() {
+  const { t, c } = useI18n();
   return (
     <section className="section goals" id="goals">
-      <div className="sectionHead">
-        <Eyebrow>Five programmes</Eyebrow>
-        <Lines className="display l" lines={["Pick your goal.", <em key="w">We'll do the maths.</em>]} />
+      <div className="sectionHead center">
+        <Eyebrow>{t("Five programmes")}</Eyebrow>
+        <Lines className="display l" lines={[t("Pick your goal."), <em key="w">{t("We'll do the maths.")}</em>]} />
       </div>
       <div className="goalGrid">
         {PROGRAMS.map((p, i) => (
-          <Reveal key={p.id} delay={i * 0.06} className="goalCell">
+          <Reveal key={p.id} delay={i * 0.05} className="goalCell">
             <Link to={`/start?program=${p.id}`} className="goalCard">
-              <div className="goalMedia"><img src={p.image} alt="" loading="lazy" /></div>
-              <div className="goalShade" />
-              <div className="goalTop"><span className="goalIndex">0{i + 1}</span><span className="goalKcal">{p.kcalRange[0]}–{p.kcalRange[1]} kcal</span></div>
-              <div className="goalBottom">
-                <span className="goalGoal">{p.goal}</span>
-                <h3 className="display m">{p.name}</h3>
-                <p>{p.tagline}</p>
-                <span className="goalFrom">from {aed(p.mealPriceFils)}/meal <Arrow /></span>
+              <img className="goalThumb" src={p.image} alt="" loading="lazy" width={120} height={120} />
+              <div className="goalText">
+                <span className="goalGoal">{c.programGoal(p)}</span>
+                <h3 className="display s">{c.program(p)}</h3>
+                <span className="goalMeta">{t("{min}–{max} kcal", { min: p.kcalRange[0], max: p.kcalRange[1] })}</span>
               </div>
+              <span className="goalFrom">{t("from {price}/meal", { price: aed(p.mealPriceFils) })} <Arrow /></span>
             </Link>
           </Reveal>
         ))}
@@ -137,90 +121,56 @@ function Goals() {
 
 /* ------------------------------- How it works ------------------------------ */
 
-const STEPS = [
-  { title: "Pick your goal", body: "Lean, Balance, Muscle, Keto or Plant. Each one has its own portions and macro split.", image: "/scenes/green-flatlay.webp" },
-  { title: "Dial in your macros", body: "Tell us your height, weight and training load. We set a daily calorie target and portion every meal to hit it.", image: "/meals/grilled-chicken-peas.webp" },
-  { title: "Set your rhythm", body: "2–5 meals a day, 5–7 days a week, for 1, 2 or 4 weeks. Longer plans cost less per day.", image: "/scenes/bowls-overhead.webp" },
-  { title: "We cook. You train.", body: "Cooked fresh and delivered 5–8 AM or the night before. Swap dishes or skip days up to 48 hours ahead.", image: "/scenes/ingredients.webp" },
-];
-
 function HowItWorks() {
-  const [active, setActive] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 60%", "end 60%"] });
-  const bar = useSpring(scrollYProgress, { stiffness: 200, damping: 40 });
+  const { t } = useI18n();
+  const ref = useRef<HTMLOListElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-120px" });
+  const steps = [
+    [t("Pick your goal"), t("Five programmes, each with its own portions and macro split.")],
+    [t("Set your numbers"), t("We turn your height, weight and training into a daily calorie target.")],
+    [t("Choose your rhythm"), t("2–5 meals a day, 5–7 days a week, for 1, 2 or 4 weeks.")],
+    [t("We cook. You train."), t("Delivered 5–8 AM. Swap or skip up to 48 hours ahead.")],
+  ];
   return (
     <section className="section how" id="how">
-      <div className="sectionHead">
-        <Eyebrow>How it works</Eyebrow>
-        <Lines className="display l" lines={["Four steps.", <em key="z">Zero meal prep.</em>]} />
+      <div className="sectionHead center">
+        <Eyebrow>{t("How it works")}</Eyebrow>
+        <Lines className="display l" lines={[t("Four steps."), <em key="z">{t("Zero meal prep.")}</em>]} />
       </div>
-      <div className="howGrid" ref={ref}>
-        <div className="howSticky">
-          <div className="howVisual">
-            <AnimatePresence mode="popLayout">
-              <motion.img key={active} src={STEPS[active].image} alt="" initial={{ opacity: 0, scale: 1.08, filter: "blur(8px)" }} animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }} exit={{ opacity: 0 }} transition={{ duration: 0.7, ease: EASE_OUT }} />
-            </AnimatePresence>
-            <div className="howNumber"><AnimatePresence mode="popLayout"><motion.span key={active} initial={{ y: "100%" }} animate={{ y: "0%" }} exit={{ y: "-100%" }} transition={{ duration: 0.5, ease: EASE_OUT }}>0{active + 1}</motion.span></AnimatePresence></div>
-          </div>
-          <div className="howProgress"><motion.i style={{ scaleY: bar }} /></div>
-        </div>
-        <ol className="howSteps">
-          {STEPS.map((s, i) => <Step key={s.title} index={i} step={s} active={active === i} onActive={setActive} />)}
-        </ol>
-      </div>
+      <ol className="howRow" ref={ref}>
+        <motion.span className="howLine" aria-hidden initial={{ scaleX: 0 }} animate={{ scaleX: inView ? 1 : 0 }} transition={{ duration: 1.4, ease: EASE_OUT }} />
+        {steps.map(([title, body], i) => (
+          <motion.li key={title} className="howCard" initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.15 + i * 0.12, duration: 0.7, ease: EASE_OUT }}>
+            <span className="howDot">{i + 1}</span>
+            <h3>{title}</h3>
+            <p>{body}</p>
+          </motion.li>
+        ))}
+      </ol>
     </section>
-  );
-}
-
-function Step({ step, index, active, onActive }: { step: (typeof STEPS)[number]; index: number; active: boolean; onActive: (i: number) => void }) {
-  const ref = useRef<HTMLLIElement>(null);
-  const inView = useInView(ref, { margin: "-45% 0px -45% 0px" });
-  useEffect(() => { if (inView) onActive(index); }, [inView, index, onActive]);
-  return (
-    <li ref={ref} className={`howStep ${active ? "active" : ""}`}>
-      <span className="howStepNum">0{index + 1}</span>
-      <h3 className="display m">{step.title}</h3>
-      <p>{step.body}</p>
-      <img className="howStepImg" src={step.image} alt="" loading="lazy" />
-    </li>
   );
 }
 
 /* ------------------------------ Menu preview ------------------------------ */
 
-const FILTERS: { id: string; label: string; test: (m: Meal) => boolean }[] = [
-  { id: "all", label: "All", test: () => true },
-  { id: "protein", label: "High protein", test: (m) => m.tags.includes("high-protein") },
-  { id: "plant", label: "Plant", test: (m) => m.tags.includes("vegetarian") || m.tags.includes("vegan") },
-  { id: "keto", label: "Keto", test: (m) => m.tags.includes("keto") },
-  { id: "breakfast", label: "Breakfast", test: (m) => m.category === "breakfast" },
-];
-
 function MenuPreview({ onOpen }: { onOpen: (m: Meal) => void }) {
+  const { t } = useI18n();
+  const filters: { id: string; label: string; test: (m: Meal) => boolean }[] = [
+    { id: "all", label: t("All"), test: () => true },
+    { id: "protein", label: t("High protein"), test: (m) => m.tags.includes("high-protein") },
+    { id: "plant", label: t("Plant"), test: (m) => m.tags.includes("vegetarian") || m.tags.includes("vegan") },
+    { id: "keto", label: t("Keto"), test: (m) => m.tags.includes("keto") },
+  ];
   const [filter, setFilter] = useState("all");
-  const track = useRef<HTMLDivElement>(null);
-  const viewport = useRef<HTMLDivElement>(null);
-  const [limit, setLimit] = useState(0);
-  const meals = useMemo(() => MEALS.filter(FILTERS.find((f) => f.id === filter)!.test).slice(0, 10), [filter]);
-  const x = useMotionValue(0);
-  useEffect(() => {
-    const measure = () => setLimit(Math.max(0, (track.current?.scrollWidth || 0) - (viewport.current?.clientWidth || 0)));
-    measure();
-    x.set(0);
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [meals, x]);
+  const meals = useMemo(() => MEALS.filter(filters.find((f) => f.id === filter)!.test).filter((m) => m.category !== "snack").slice(0, 4), [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <section className="section menuPreview">
-      <div className="sectionHead row">
-        <div>
-          <Eyebrow>On the menu</Eyebrow>
-          <Lines className="display l" lines={["Food you'd order", <em key="a">anyway.</em>]} />
-        </div>
-        <div className="filterPills" role="tablist" aria-label="Filter dishes">
-          {FILTERS.map((f) => (
+      <div className="sectionHead center">
+        <Eyebrow>{t("On the menu")}</Eyebrow>
+        <Lines className="display l" lines={[t("Food you'd order"), <em key="a">{t("anyway.")}</em>]} />
+        <div className="filterPills" role="tablist" aria-label={t("Filter dishes")}>
+          {filters.map((f) => (
             <button key={f.id} role="tab" aria-selected={filter === f.id} className={`pill ${filter === f.id ? "on" : ""}`} onClick={() => setFilter(f.id)} type="button">
               {filter === f.id && <motion.span layoutId="pillBg" className="pillBg" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
               <span className="pillText">{f.label}</span>
@@ -228,20 +178,17 @@ function MenuPreview({ onOpen }: { onOpen: (m: Meal) => void }) {
           ))}
         </div>
       </div>
-      <div className="dragViewport" ref={viewport}>
-        <motion.div className="dragTrack" ref={track} drag="x" style={{ x }} dragConstraints={{ left: -limit, right: 0 }} dragElastic={0.08}>
-          <AnimatePresence mode="popLayout" initial={false}>
-            {meals.map((meal, i) => (
-              <motion.div key={meal.id} className="dragItem" layout initial={{ opacity: 0, scale: 0.94, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0, transition: { delay: i * 0.04, duration: 0.5, ease: EASE_OUT } }} exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.15 } }}>
-                <MealCard meal={meal} onOpen={() => onOpen(meal)} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
-      </div>
-      <div className="menuPreviewFoot">
-        <span className="hint">Drag to explore <Arrow /></span>
-        <Link to="/menu" className="btn secondary">Full menu ({MEALS.length} dishes) <Arrow /></Link>
+      <motion.div className="previewGrid" layout>
+        <AnimatePresence mode="popLayout" initial={false}>
+          {meals.map((meal, i) => (
+            <motion.div key={meal.id} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0, transition: { delay: i * 0.05, duration: 0.45, ease: EASE_OUT } }} exit={{ opacity: 0, transition: { duration: 0.12 } }}>
+              <MealCard meal={meal} onOpen={() => onOpen(meal)} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
+      <div className="centerRow">
+        <Link to="/menu" className="btn ghost">{t("See all {n} dishes", { n: MEALS.length })} <Arrow /></Link>
       </div>
     </section>
   );
@@ -250,6 +197,7 @@ function MenuPreview({ onOpen }: { onOpen: (m: Meal) => void }) {
 /* ------------------------------- Calculator ------------------------------- */
 
 function Calculator() {
+  const { t, c } = useI18n();
   const navigate = useNavigate();
   const [body, setBody] = useState<Body>({ sex: "male", age: 30, weightKg: 78, heightCm: 176, activity: 1.55, goal: "lose" });
   const program: ProgramId = GOAL_PROGRAM[body.goal];
@@ -261,28 +209,30 @@ function Calculator() {
     <section className="section calc dark" id="calculator">
       <div className="calcGrid">
         <div className="calcInputs">
-          <Eyebrow tone="dark">Macro calculator</Eyebrow>
-          <Lines className="display l" lines={["Your numbers,", <em key="n">in 20 seconds.</em>]} />
-          <Segmented label="Goal" value={body.goal} onChange={(v) => set("goal", v as Goal)} options={[["lose", "Lose fat"], ["maintain", "Maintain"], ["gain", "Build muscle"]]} />
-          <Segmented label="Formula uses" value={body.sex} onChange={(v) => set("sex", v as Body["sex"])} options={[["male", "Male"], ["female", "Female"]]} />
-          <Slider label="Age" unit="yrs" min={16} max={75} value={body.age} onChange={(v) => set("age", v)} />
-          <Slider label="Height" unit="cm" min={145} max={210} value={body.heightCm} onChange={(v) => set("heightCm", v)} />
-          <Slider label="Weight" unit="kg" min={40} max={160} value={body.weightKg} onChange={(v) => set("weightKg", v)} />
-          <Segmented label="Training" value={String(body.activity)} onChange={(v) => set("activity", Number(v))} options={ACTIVITY.map((a) => [String(a.id), a.label])} />
+          <Eyebrow tone="dark">{t("Macro calculator")}</Eyebrow>
+          <Lines className="display l" lines={[t("Your numbers,"), <em key="n">{t("in 20 seconds.")}</em>]} />
+          <Segmented label={t("Goal")} id="c-goal" value={body.goal} onChange={(v) => set("goal", v as Goal)} options={[["lose", t("Lose fat")], ["maintain", t("Maintain")], ["gain", t("Build muscle")]]} />
+          <Segmented label={t("Formula uses")} id="c-sex" value={body.sex} onChange={(v) => set("sex", v as Body["sex"])} options={[["male", t("Male")], ["female", t("Female")]]} />
+          <div className="sliderRow">
+            <Slider label={t("Age")} unit={t("yrs")} min={16} max={75} value={body.age} onChange={(v) => set("age", v)} />
+            <Slider label={t("Height")} unit={t("cm")} min={145} max={210} value={body.heightCm} onChange={(v) => set("heightCm", v)} />
+            <Slider label={t("Weight")} unit={t("kg")} min={40} max={160} value={body.weightKg} onChange={(v) => set("weightKg", v)} />
+          </div>
+          <Segmented label={t("Training")} id="c-act" value={String(body.activity)} onChange={(v) => set("activity", Number(v))} options={ACTIVITY.map((a) => [String(a.id), t(a.label)])} />
         </div>
         <div className="calcResult">
-          <MacroRing m={macros} size={300} stroke={22} />
+          <MacroRing m={macros} size={240} stroke={18} label={t("kcal / day")} />
           <div className="calcMacros">
-            <div className="protein"><span>Protein</span><b className="tabular">{macros.protein}g</b></div>
-            <div className="carbs"><span>Carbs</span><b className="tabular">{macros.carbs}g</b></div>
-            <div className="fat"><span>Fat</span><b className="tabular">{macros.fat}g</b></div>
+            <div className="protein"><span>{t("Protein")}</span><b className="tabular">{macros.protein}{t("g")}</b></div>
+            <div className="carbs"><span>{t("Carbs")}</span><b className="tabular">{macros.carbs}{t("g")}</b></div>
+            <div className="fat"><span>{t("Fat")}</span><b className="tabular">{macros.fat}{t("g")}</b></div>
           </div>
           <div className="calcPick">
-            <span>We'd put you on</span>
-            <AnimatePresence mode="popLayout"><motion.strong key={program} className="display m" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} transition={{ duration: 0.35, ease: EASE_OUT }}>{program}</motion.strong></AnimatePresence>
+            <span>{t("We'd put you on")}</span>
+            <AnimatePresence mode="popLayout"><motion.strong key={program} className="display m" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} transition={{ duration: 0.35, ease: EASE_OUT }}>{c.program(PROGRAMS_BY_ID[program])}</motion.strong></AnimatePresence>
           </div>
-          <button className="btn primary lg" type="button" onClick={() => navigate(`/start?program=${program}&kcal=${kcal}`)}>Build this plan <Arrow /></button>
-          <p className="fine">Mifflin–St Jeor estimate. It's guidance, not medical advice.</p>
+          <button className="btn primary lg" type="button" onClick={() => navigate(`/start?program=${program}&kcal=${kcal}`)}>{t("Build this plan")} <Arrow /></button>
+          <p className="fine">{t("Mifflin–St Jeor estimate. It's guidance, not medical advice.")}</p>
         </div>
       </div>
     </section>
@@ -319,18 +269,17 @@ export function Slider({ label, unit, min, max, value, onChange }: { label: stri
 /* --------------------------------- Pricing -------------------------------- */
 
 function Pricing() {
+  const { t, c } = useI18n();
   const [mealsPerDay, setMeals] = useState("3");
   const [weeks, setWeeks] = useState("4");
   return (
     <section className="section pricing" id="plans">
-      <div className="sectionHead row">
-        <div>
-          <Eyebrow>Plans & pricing</Eyebrow>
-          <Lines className="display l" lines={["Straight prices.", <em key="p">No subscription traps.</em>]} />
-        </div>
+      <div className="sectionHead center">
+        <Eyebrow>{t("Plans & pricing")}</Eyebrow>
+        <Lines className="display l" lines={[t("Straight prices."), <em key="p">{t("No subscription traps.")}</em>]} />
         <div className="pricingControls">
-          <Segmented id="p-meals" label="Meals a day" value={mealsPerDay} onChange={setMeals} options={[["2", "2"], ["3", "3"], ["4", "3 + snack"], ["5", "3 + 2 snacks"]]} />
-          <Segmented id="p-weeks" label="Plan length" value={weeks} onChange={setWeeks} options={[["1", "1 week"], ["2", "2 weeks"], ["4", "4 weeks"]]} />
+          <Segmented id="p-meals" label={t("Meals a day")} value={mealsPerDay} onChange={setMeals} options={[["2", "2"], ["3", "3"], ["4", t("3 + snack")], ["5", t("3 + 2 snacks")]]} />
+          <Segmented id="p-weeks" label={t("Plan length")} value={weeks} onChange={setWeeks} options={[["1", t("1 week")], ["2", t("2 weeks")], ["4", t("4 weeks")]]} />
         </div>
       </div>
       <div className="priceGrid">
@@ -338,74 +287,68 @@ function Pricing() {
           const q = quote({ program: p.id, mealsPerDay: Number(mealsPerDay), daysPerWeek: 5, weeks: Number(weeks) });
           return (
             <Reveal key={p.id} delay={i * 0.05} className={`priceCard ${p.id === "balance" ? "featured" : ""}`}>
-              {p.id === "balance" && <span className="priceFlag">Start here</span>}
-              <span className="priceGoal">{p.goal}</span>
-              <h3 className="display m">{p.name}</h3>
-              <div className="priceBig"><span className="cur">AED</span><Counter value={q.perDayAfterDiscount / 100} duration={0.6} /><small>/day</small></div>
-              <p className="priceSub">{aed(q.total)} for {q.days} days · Mon–Fri</p>
-              <ul>
-                <li>{p.kcalRange[0]}–{p.kcalRange[1]} kcal/day</li>
-                <li>{Math.round(p.split.protein * 100)} / {Math.round(p.split.carbs * 100)} / {Math.round(p.split.fat * 100)} P·C·F split</li>
-                <li>Free delivery, all 7 emirates</li>
-              </ul>
-              <Link to={`/start?program=${p.id}&meals=${mealsPerDay}&weeks=${weeks}`} className={`btn ${p.id === "balance" ? "primary" : "secondary"}`}>Choose {p.name}</Link>
+              {p.id === "balance" && <span className="priceFlag">{t("Start here")}</span>}
+              <span className="priceGoal">{c.programGoal(p)}</span>
+              <h3 className="display m">{c.program(p)}</h3>
+              <div className="priceBig"><span className="cur">{t("AED")}</span><Counter value={q.perDayAfterDiscount / 100} duration={0.6} /><small>{t("/day")}</small></div>
+              <p className="priceSub">{t("{total} for {days} days", { total: aed(q.total), days: q.days })}</p>
+              <p className="priceKcal">{t("{min}–{max} kcal", { min: p.kcalRange[0], max: p.kcalRange[1] })}</p>
+              <Link to={`/start?program=${p.id}&meals=${mealsPerDay}&weeks=${weeks}`} className={`btn ${p.id === "balance" ? "primary" : "ghost"}`}>{t("Choose")}</Link>
             </Reveal>
           );
         })}
       </div>
-      <p className="fine center">Prices include 5% VAT. Weekend delivery (6–7 days) available at the same per-day price. {Number(weeks) > 1 && `${weeks}-week plans save ${Number(weeks) === 2 ? 5 : 10}%.`}</p>
+      <p className="fine center">{t("Prices include 5% VAT. Free delivery to all 7 emirates.")}</p>
     </section>
   );
 }
 
-/* ----------------------------------- Why ---------------------------------- */
+/* --------------------------------- Promise -------------------------------- */
 
-function Why() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y1 = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
-  const y2 = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
+function Guarantees() {
+  const { t } = useI18n();
+  const items = [
+    [t("48h"), t("Swap or skip until 48 hours before delivery")],
+    ["5–8", t("Morning delivery, before work")],
+    ["7/7", t("Every emirate, free delivery")],
+    ["1×", t("One payment. Plans never auto-renew")],
+  ];
   return (
-    <section className="section why" ref={ref}>
-      <div className="sectionHead">
-        <Eyebrow>Why Dietbox</Eyebrow>
-        <Lines className="display l" lines={["Built like a", <em key="t">training plan.</em>]} />
-      </div>
-      <div className="bento">
-        <div className="bentoImg tall"><motion.img style={{ y: y1 }} src="/scenes/bowls-overhead.webp" alt="Overhead view of assorted Dietbox bowls" loading="lazy" /></div>
-        <Reveal className="bentoCard volt"><span className="bentoNum">±5<small>g</small></span><h3>Weighed, not guessed</h3><p>Every portion is weighed and macro-counted for your programme.</p></Reveal>
-        <Reveal className="bentoCard" delay={0.05}><span className="bentoNum">48<small>h</small></span><h3>Change your mind</h3><p>Swap dishes or skip days until 48 hours before delivery. Skipped days move to the end of your plan.</p></Reveal>
-        <div className="bentoImg"><motion.img style={{ y: y2 }} src="/scenes/ingredients.webp" alt="Fresh vegetables and grains" loading="lazy" /></div>
-        <Reveal className="bentoCard dark" delay={0.1}><span className="bentoNum">5–8<small>am</small></span><h3>At your door before work</h3><p>Morning drops, or the night before if you train early.</p></Reveal>
-        <Reveal className="bentoCard wide" delay={0.15}><span className="bentoNum">7<small>/7</small></span><div><h3>Every emirate</h3><p>Free delivery, same menu, same morning window.</p></div><div className="emirates">{EMIRATES.map((e) => <span key={e}>{e}</span>)}</div></Reveal>
-      </div>
+    <section className="section promise">
+      <ul className="promiseRow">
+        {items.map(([n, label], i) => (
+          <Reveal as="li" key={label} delay={i * 0.06} className="promiseItem">
+            <span className="promiseNum">{n}</span>
+            <span className="promiseLabel">{label}</span>
+          </Reveal>
+        ))}
+      </ul>
     </section>
   );
 }
 
 /* ----------------------------------- FAQ ---------------------------------- */
 
-const FAQ = [
-  ["How does delivery work?", "Choose a morning (5–8 AM) or night-before (6–10 PM) window. All the day's meals arrive together in an insulated bag. Keep them refrigerated and heat mains for about 2 minutes."],
-  ["Can I change meals?", "Yes. Each day has a rotating menu per programme. Swap any dish until 48 hours before that delivery."],
-  ["What if I travel?", "Skip any day from your dashboard, 48 hours ahead. It isn't lost. We add a delivery day to the end of your plan."],
-  ["Is this a subscription?", "No. You buy a 1, 2 or 4-week plan upfront and it doesn't auto-renew. Renew when you're ready."],
-  ["Do you handle allergies?", "Every dish lists the 8 major allergens. Our kitchen handles nuts, gluten, dairy and sesame, so we can't guarantee there's no cross-contact."],
-  ["How are calories calculated?", "Your target uses the Mifflin–St Jeor equation adjusted for training and goal. Portions scale by programme: Lean runs smaller and Muscle runs larger."],
-];
-
 function Faq() {
+  const { t } = useI18n();
+  const faq = [
+    [t("How does delivery work?"), t("Choose a morning (5–8 AM) or night-before (6–10 PM) window. All the day's meals arrive together in an insulated bag. Keep them refrigerated and heat mains for about 2 minutes.")],
+    [t("Can I change meals?"), t("Yes. Each day has a rotating menu per programme. Swap any dish until 48 hours before that delivery.")],
+    [t("What if I travel?"), t("Skip any day from your dashboard, 48 hours ahead. It isn't lost. We add a delivery day to the end of your plan.")],
+    [t("Is this a subscription?"), t("No. You buy a 1, 2 or 4-week plan upfront and it doesn't auto-renew. Renew when you're ready.")],
+    [t("Do you handle allergies?"), t("Every dish lists the 8 major allergens. Our kitchen handles nuts, gluten, dairy and sesame, so we can't guarantee there's no cross-contact.")],
+  ];
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section className="section faq" id="faq">
       <div className="faqGrid">
         <div>
-          <Eyebrow>FAQ</Eyebrow>
-          <Lines className="display l" lines={["Questions,", <em key="q">answered.</em>]} />
-          <p className="lead">Something else? Email <a href="mailto:hello@dietbox.ae">hello@dietbox.ae</a>.</p>
+          <Eyebrow>{t("FAQ")}</Eyebrow>
+          <Lines className="display l" lines={[t("Questions,"), <em key="q">{t("answered.")}</em>]} />
+          <p className="lead">{t("Something else? Email")} <a href="mailto:hello@dietbox.ae">hello@dietbox.ae</a></p>
         </div>
         <div className="accordion">
-          {FAQ.map(([q, a], i) => (
+          {faq.map(([q, a], i) => (
             <div key={q} className={`accItem ${open === i ? "open" : ""}`}>
               <button className="accHead" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i} type="button">
                 <span>{q}</span><i className="accIcon" aria-hidden />
@@ -428,15 +371,12 @@ function Faq() {
 /* -------------------------------- Final CTA ------------------------------- */
 
 function FinalCta() {
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const x = useTransform(scrollYProgress, [0, 1], ["10%", "-35%"]);
+  const { t } = useI18n();
   return (
-    <section className="finalCta" ref={ref}>
-      <motion.div className="finalGiant" style={{ x }} aria-hidden>START MONDAY · START MONDAY ·</motion.div>
+    <section className="finalCta">
       <div className="finalInner">
-        <Lines className="display l" lines={["Your first box", "is two days away."]} />
-        <Link to="/start" className="btn secondary lg">Build my plan <Arrow /></Link>
+        <Lines className="display l" lines={[t("Your first box"), t("is two days away.")]} />
+        <Link to="/start" className="btn secondary lg">{t("Build my plan")} <Arrow /></Link>
       </div>
     </section>
   );

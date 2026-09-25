@@ -2,16 +2,18 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { MEALS, type Allergen, type Category, type Meal, type Tag } from "../../shared/catalog";
-import { Arrow, Eyebrow, Ticker } from "../components/brand";
+import { Arrow, Eyebrow } from "../components/brand";
 import { EASE_OUT, Lines } from "../components/motion";
-import { MealCard, MealDetail, Sheet, tagLabel } from "../components/meal";
+import { MealCard, MealDetail, Sheet } from "../components/meal";
 import { Footer } from "../components/layout";
+import { useI18n } from "../i18n";
 
-const CATS: [Category | "all", string][] = [["all", "Everything"], ["breakfast", "Breakfast"], ["main", "Lunch & dinner"], ["snack", "Snacks"]];
 const DIETS: Tag[] = ["high-protein", "vegetarian", "vegan", "keto", "gluten-free", "dairy-free"];
 const ALLERGENS: Allergen[] = ["gluten", "dairy", "egg", "nuts", "sesame", "soy", "fish"];
 
 export default function Menu() {
+  const { t, c } = useI18n();
+  const cats: [Category | "all", string][] = [["all", t("Everything")], ["breakfast", t("Breakfast")], ["main", t("Lunch & dinner")], ["snack", t("Snacks")]];
   const [cat, setCat] = useState<Category | "all">("all");
   const [diets, setDiets] = useState<Tag[]>([]);
   const [avoid, setAvoid] = useState<Allergen[]>([]);
@@ -27,21 +29,15 @@ export default function Menu() {
     <>
       <section className="menuHero">
         <div className="menuHeroInner">
-          <Eyebrow tone="dark">The menu · {MEALS.length} dishes in rotation</Eyebrow>
-          <Lines as="h1" immediate className="display xl" lines={["Cooked this", <em key="m">morning.</em>]} />
-          <div className="menuFan" aria-hidden>
-            {["sirloin-chimichurri", "buddha-bowl", "protein-pancakes"].map((id, i) => (
-              <motion.img key={id} src={`/meals/${id}.webp`} alt="" initial={{ opacity: 0, y: 60, rotate: 0 }} animate={{ opacity: 1, y: 0, rotate: [-8, 3, 10][i] }} transition={{ delay: 0.3 + i * 0.12, duration: 1, ease: EASE_OUT }} />
-            ))}
-          </div>
-          <p className="heroLead">Each programme gets its own rotating daily menu from this list. Swap any dish in your plan until 48 hours before delivery.</p>
+          <Eyebrow tone="dark">{t("The menu · {n} dishes in rotation", { n: MEALS.length })}</Eyebrow>
+          <Lines as="h1" immediate className="display xl" lines={[t("Cooked this"), <em key="m">{t("morning.")}</em>]} />
+          <p className="heroLead">{t("Each programme gets its own rotating daily menu from this list. Swap any dish in your plan until 48 hours before delivery.")}</p>
         </div>
       </section>
-      <Ticker tone="carbon" reverse items={MEALS.slice(0, 12).map((m) => m.name)} />
       <main className="section menuPage">
         <div className="menuFilters">
-          <div className="filterPills" role="tablist" aria-label="Category">
-            {CATS.map(([id, label]) => (
+          <div className="filterPills" role="tablist" aria-label={t("Category")}>
+            {cats.map(([id, label]) => (
               <button key={id} role="tab" aria-selected={cat === id} className={`pill ${cat === id ? "on" : ""}`} onClick={() => setCat(id)} type="button">
                 {cat === id && <motion.span layoutId="menuCat" className="pillBg" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
                 <span className="pillText">{label}</span>
@@ -49,19 +45,19 @@ export default function Menu() {
             ))}
           </div>
           <div className="chipFilters">
-            <span className="fieldLabel">Diet</span>
-            {DIETS.map((d) => <button key={d} type="button" aria-pressed={diets.includes(d)} className={`tagToggle ${diets.includes(d) ? "on" : ""}`} onClick={() => setDiets(toggle(diets, d))}>{tagLabel(d)}</button>)}
+            <span className="fieldLabel">{t("Diet")}</span>
+            {DIETS.map((d) => <button key={d} type="button" aria-pressed={diets.includes(d)} className={`tagToggle ${diets.includes(d) ? "on" : ""}`} onClick={() => setDiets(toggle(diets, d))}>{c.tag(d)}</button>)}
           </div>
           <div className="chipFilters">
-            <span className="fieldLabel">Avoid</span>
-            {ALLERGENS.map((a) => <button key={a} type="button" aria-pressed={avoid.includes(a)} className={`tagToggle avoid ${avoid.includes(a) ? "on" : ""}`} onClick={() => setAvoid(toggle(avoid, a))}>{a}</button>)}
+            <span className="fieldLabel">{t("Avoid")}</span>
+            {ALLERGENS.map((a) => <button key={a} type="button" aria-pressed={avoid.includes(a)} className={`tagToggle avoid ${avoid.includes(a) ? "on" : ""}`} onClick={() => setAvoid(toggle(avoid, a))}>{c.allergen(a)}</button>)}
           </div>
         </div>
-        <p className="resultCount" aria-live="polite">{meals.length} dish{meals.length === 1 ? "" : "es"}</p>
+        <p className="resultCount" aria-live="polite">{meals.length === 1 ? t("1 dish") : t("{n} dishes", { n: meals.length })}</p>
         <motion.div className="mealGrid" layout>
           <AnimatePresence mode="popLayout">
             {meals.map((meal, i) => (
-              <motion.div key={meal.id} layout initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, delay: Math.min(i, 12) * 0.03, ease: EASE_OUT } }} exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}>
+              <motion.div key={meal.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0, transition: { duration: 0.45, delay: Math.min(i, 12) * 0.03, ease: EASE_OUT } }} exit={{ opacity: 0, transition: { duration: 0.12 } }}>
                 <MealCard meal={meal} onOpen={() => setOpen(meal)} />
               </motion.div>
             ))}
@@ -69,18 +65,18 @@ export default function Menu() {
         </motion.div>
         {meals.length === 0 && (
           <div className="empty">
-            <h3>Nothing matches every filter.</h3>
-            <button className="btn secondary" type="button" onClick={() => { setDiets([]); setAvoid([]); setCat("all"); }}>Clear filters</button>
+            <h3>{t("Nothing matches every filter.")}</h3>
+            <button className="btn secondary" type="button" onClick={() => { setDiets([]); setAvoid([]); setCat("all"); }}>{t("Clear filters")}</button>
           </div>
         )}
         <div className="menuCta">
-          <h2 className="display l">Like what you see?</h2>
-          <Link to="/start" className="btn primary lg">Build my plan <Arrow /></Link>
+          <h2 className="display l">{t("Like what you see?")}</h2>
+          <Link to="/start" className="btn primary lg">{t("Build my plan")} <Arrow /></Link>
         </div>
       </main>
       <Footer />
-      <Sheet open={!!open} onClose={() => setOpen(null)} label={open?.name || "Meal"}>
-        {open && <MealDetail meal={open} footer={<Link className="btn primary" to="/start">Get it in my plan <Arrow /></Link>} />}
+      <Sheet open={!!open} onClose={() => setOpen(null)} label={open ? c.meal(open) : t("Meal")}>
+        {open && <MealDetail meal={open} footer={<Link className="btn primary" to="/start">{t("Get it in my plan")} <Arrow /></Link>} />}
       </Sheet>
     </>
   );

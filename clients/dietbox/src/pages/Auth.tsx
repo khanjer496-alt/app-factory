@@ -5,8 +5,10 @@ import { safeNext } from "../lib/format";
 import { Turnstile } from "../components/Turnstile";
 import { Eyebrow } from "../components/brand";
 import { Lines } from "../components/motion";
+import { useI18n } from "../i18n";
 
 function AuthFrame({ title, eyebrow, children }: { title: ReactNode[]; eyebrow: string; children: ReactNode }) {
+  const { t } = useI18n();
   return (
     <main className="authPage">
       <section className="authForm">
@@ -16,7 +18,7 @@ function AuthFrame({ title, eyebrow, children }: { title: ReactNode[]; eyebrow: 
       </section>
       <aside className="authArt" aria-hidden>
         <img src="/meals/sirloin-chimichurri.webp" alt="" />
-        <p className="display l">Train hard.<br /><em>Eat smart.</em></p>
+        <p className="display l">{t("Train hard.")}<br /><em>{t("Eat smart.")}</em></p>
       </aside>
     </main>
   );
@@ -25,6 +27,7 @@ function AuthFrame({ title, eyebrow, children }: { title: ReactNode[]; eyebrow: 
 export function Login({ signup = false }: { signup?: boolean }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { t } = useI18n();
   const next = safeNext(params.get("next"));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,34 +46,35 @@ export function Login({ signup = false }: { signup?: boolean }) {
       ? await authClient.signUp.email({ name, email, password, callbackURL: next, fetchOptions })
       : await authClient.signIn.email({ email, password, callbackURL: next, fetchOptions });
     setBusy(false);
-    if (result.error) return setError(result.error.message || "Authentication failed");
+    if (result.error) return setError(result.error.message ? t(result.error.message) : t("Authentication failed"));
     // No session token means email verification is required before signing in.
-    if (signup && !result.data?.token) return setSuccess("Account created. Check your inbox and verify your email. The link brings you straight back.");
+    if (signup && !result.data?.token) return setSuccess(t("Account created. Check your inbox and verify your email. The link brings you straight back."));
     navigate(next);
   }
 
   return (
-    <AuthFrame eyebrow={signup ? "Create account" : "Welcome back"} title={signup ? ["Let's get", <em key="c">you cooking.</em>] : ["Good to", <em key="s">see you.</em>]}>
+    <AuthFrame eyebrow={signup ? t("Create account") : t("Welcome back")} title={signup ? [t("Let's get"), <em key="c">{t("you cooking.")}</em>] : [t("Good to"), <em key="s">{t("see you.")}</em>]}>
       <form className="authFields" onSubmit={submit}>
-        {signup && <label className="input"><span>Name</span><input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required /></label>}
-        <label className="input"><span>Email</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required /></label>
-        <label className="input"><span>Password</span><input type="password" minLength={10} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={signup ? "new-password" : "current-password"} required /></label>
+        {signup && <label className="input"><span>{t("Name")}</span><input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required /></label>}
+        <label className="input"><span>{t("Email")}</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required /></label>
+        <label className="input"><span>{t("Password")}</span><input type="password" minLength={10} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={signup ? "new-password" : "current-password"} required /></label>
         <Turnstile onToken={setToken} />
         {error && <p className="error" role="alert">{error}</p>}
         {success && <p className="notice">{success}</p>}
-        <button className="btn primary lg block" disabled={busy}>{busy ? "Working…" : signup ? "Create account" : "Sign in"}</button>
+        <button className="btn primary lg block" disabled={busy}>{busy ? t("Working…") : signup ? t("Create account") : t("Sign in")}</button>
       </form>
-      {googleEnabled && <button className="btn ghost lg block" type="button" onClick={() => authClient.signIn.social({ provider: "google", callbackURL: next })}>Continue with Google</button>}
+      {googleEnabled && <button className="btn ghost lg block" type="button" onClick={() => authClient.signIn.social({ provider: "google", callbackURL: next })}>{t("Continue with Google")}</button>}
       <p className="authSwitch">
-        {!signup && <><Link to="/forgot-password">Forgot password?</Link> · </>}
-        {signup ? "Already have an account? " : "New here? "}
-        <Link to={`${signup ? "/login" : "/signup"}?next=${encodeURIComponent(next)}`}>{signup ? "Sign in" : "Create account"}</Link>
+        {!signup && <><Link to="/forgot-password">{t("Forgot password?")}</Link> · </>}
+        {signup ? t("Already have an account?") : t("New here?")}{" "}
+        <Link to={`${signup ? "/login" : "/signup"}?next=${encodeURIComponent(next)}`}>{signup ? t("Sign in") : t("Create account")}</Link>
       </p>
     </AuthFrame>
   );
 }
 
 export function ForgotPassword() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [done, setDone] = useState(false);
@@ -80,12 +84,12 @@ export function ForgotPassword() {
     setDone(true);
   }
   return (
-    <AuthFrame eyebrow="Reset password" title={["Forgot it?", <em key="f">Happens.</em>]}>
-      {done ? <p className="notice">If that account exists, a reset link is on its way.</p> : (
+    <AuthFrame eyebrow={t("Reset password")} title={[t("Forgot it?"), <em key="f">{t("Happens.")}</em>]}>
+      {done ? <p className="notice">{t("If that account exists, a reset link is on its way.")}</p> : (
         <form className="authFields" onSubmit={submit}>
-          <label className="input"><span>Email</span><input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+          <label className="input"><span>{t("Email")}</span><input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
           <Turnstile onToken={setToken} />
-          <button className="btn primary lg block">Send reset link</button>
+          <button className="btn primary lg block">{t("Send reset link")}</button>
         </form>
       )}
     </AuthFrame>
@@ -93,21 +97,22 @@ export function ForgotPassword() {
 }
 
 export function ResetPassword() {
+  const { t } = useI18n();
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
   const token = new URLSearchParams(location.search).get("token") || "";
   async function submit(e: FormEvent) {
     e.preventDefault();
     const r = await authClient.resetPassword({ newPassword, token });
-    setMessage(r.error?.message || "Password updated. You can sign in now.");
+    setMessage(r.error?.message || t("Password updated. You can sign in now."));
   }
   return (
-    <AuthFrame eyebrow="New password" title={["Choose a", <em key="n">new password.</em>]}>
+    <AuthFrame eyebrow={t("New password")} title={[t("Choose a"), <em key="n">{t("new password.")}</em>]}>
       <form className="authFields" onSubmit={submit}>
-        <label className="input"><span>New password</span><input type="password" minLength={10} required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" /></label>
-        <button className="btn primary lg block">Update password</button>
+        <label className="input"><span>{t("New password")}</span><input type="password" minLength={10} required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" /></label>
+        <button className="btn primary lg block">{t("Update password")}</button>
       </form>
-      {message && <p className="notice">{message} <Link to="/login">Sign in</Link></p>}
+      {message && <p className="notice">{message} <Link to="/login">{t("Sign in")}</Link></p>}
     </AuthFrame>
   );
 }

@@ -2,36 +2,35 @@ import { useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { Meal } from "../../shared/catalog";
 import { EASE_OUT } from "./motion";
+import { useI18n } from "../i18n";
 
 type Macros = { kcal: number; protein: number; carbs: number; fat: number };
 
-const TAG_LABEL: Record<string, string> = {
-  "high-protein": "High protein", vegetarian: "Vegetarian", vegan: "Vegan", keto: "Keto", "gluten-free": "Gluten-free", "dairy-free": "Dairy-free", spicy: "Spicy",
-};
-export const tagLabel = (tag: string) => TAG_LABEL[tag] || tag;
 
 export function MacroChips({ m, compact = false }: { m: Macros; compact?: boolean }) {
+  const { t } = useI18n();
   return (
     <div className={`macroChips ${compact ? "compact" : ""}`}>
-      <span className="chip kcal"><b>{m.kcal}</b> kcal</span>
-      <span className="chip protein"><b>{m.protein}g</b> P</span>
-      <span className="chip carbs"><b>{m.carbs}g</b> C</span>
-      <span className="chip fat"><b>{m.fat}g</b> F</span>
+      <span className="chip kcal"><b>{m.kcal}</b> {t("kcal")}</span>
+      <span className="chip protein"><b>{m.protein}{t("g")}</b> {t("P")}</span>
+      <span className="chip carbs"><b>{m.carbs}{t("g")}</b> {t("C")}</span>
+      <span className="chip fat"><b>{m.fat}{t("g")}</b> {t("F")}</span>
     </div>
   );
 }
 
 export function MealCard({ meal, macros, onOpen, badge, action }: { meal: Meal; macros?: Macros; onOpen?: () => void; badge?: ReactNode; action?: ReactNode }) {
   const m = macros || meal;
+  const { t, c } = useI18n();
   return (
     <article className="mealCard">
-      <button className="mealMedia" onClick={onOpen} aria-label={`View ${meal.name}`} type="button">
+      <button className="mealMedia" onClick={onOpen} aria-label={t("View {name}", { name: c.meal(meal) })} type="button">
         <img src={meal.image} alt="" loading="lazy" width={720} height={720} />
-        <span className="kcalBadge"><b>{m.kcal}</b><small>kcal</small></span>
+        <span className="kcalBadge"><b>{m.kcal}</b><small>{t("kcal")}</small></span>
         {badge}
       </button>
       <div className="mealBody">
-        <h3>{meal.name}</h3>
+        <h3>{c.meal(meal)}</h3>
         <MacroChips m={m} compact />
         {action}
       </div>
@@ -40,7 +39,8 @@ export function MealCard({ meal, macros, onOpen, badge, action }: { meal: Meal; 
 }
 
 /** Four-segment macro ring. Segment lengths are energy share (P,C ×4 · F ×9). */
-export function MacroRing({ m, size = 220, label = "kcal / day", stroke = 16 }: { m: Macros; size?: number; label?: string; stroke?: number }) {
+export function MacroRing({ m, size = 220, label, stroke = 16 }: { m: Macros; size?: number; label?: string; stroke?: number }) {
+  const { t } = useI18n();
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const energy = [m.protein * 4, m.carbs * 4, m.fat * 9];
@@ -70,7 +70,7 @@ export function MacroRing({ m, size = 220, label = "kcal / day", stroke = 16 }: 
       </svg>
       <div className="ringCenter">
         <strong className="tabular">{m.kcal.toLocaleString()}</strong>
-        <span>{label}</span>
+        <span>{label ?? t("kcal / day")}</span>
       </div>
     </div>
   );
@@ -78,31 +78,33 @@ export function MacroRing({ m, size = 220, label = "kcal / day", stroke = 16 }: 
 
 export function NutritionLabel({ meal, macros }: { meal: Meal; macros?: Macros }) {
   const m = macros || meal;
+  const { t, c } = useI18n();
   const energy = m.protein * 4 + m.carbs * 4 + m.fat * 9 || 1;
-  const rows: [string, number, string][] = [["Protein", m.protein, "protein"], ["Carbohydrate", m.carbs, "carbs"], ["Fat", m.fat, "fat"]];
+  const rows: [string, number, string][] = [[t("Protein"), m.protein, "protein"], [t("Carbohydrate"), m.carbs, "carbs"], [t("Fat"), m.fat, "fat"]];
   return (
     <div className="nutritionLabel">
-      <div className="nlHead">Nutrition<br />Facts</div>
+      <div className="nlHead">{t("Nutrition")}<br />{t("Facts")}</div>
       <div className="nlRule thick" />
-      <div className="nlRow big"><span>Calories</span><b className="tabular">{m.kcal}</b></div>
+      <div className="nlRow big"><span>{t("Calories")}</span><b className="tabular">{m.kcal}</b></div>
       <div className="nlRule mid" />
       {rows.map(([label, grams, cls]) => {
         const pct = Math.round(((cls === "fat" ? grams * 9 : grams * 4) / energy) * 100);
         return (
           <div className="nlRow" key={cls}>
-            <span>{label}</span>
+            <span>{label ?? t("kcal / day")}</span>
             <span className="nlBarWrap"><motion.i className={`nlBar ${cls}`} initial={{ scaleX: 0 }} animate={{ scaleX: pct / 100 }} transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.2 }} /></span>
-            <b className="tabular">{grams}g</b>
+            <b className="tabular">{grams}{t("g")}</b>
           </div>
         );
       })}
       <div className="nlRule" />
-      <p className="nlFoot">Contains: {meal.allergens.length ? meal.allergens.join(", ") : "none of the 8 major allergens"}. Values are indicative per portion.</p>
+      <p className="nlFoot">{meal.allergens.length ? t("Contains: {list}.", { list: meal.allergens.map(c.allergen).join(t(", ")) }) : t("Contains none of the 8 major allergens.")} {t("Values are indicative per portion.")}</p>
     </div>
   );
 }
 
 export function Sheet({ open, onClose, children, label }: { open: boolean; onClose: () => void; children: ReactNode; label: string }) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -122,7 +124,7 @@ export function Sheet({ open, onClose, children, label }: { open: boolean; onClo
             animate={{ transform: "translateY(0px) scale(1)", opacity: 1, transition: { duration: 0.45, ease: [0.32, 0.72, 0, 1] } }}
             exit={{ transform: "translateY(24px) scale(0.98)", opacity: 0, transition: { duration: 0.18 } }}
           >
-            <button className="sheetClose" onClick={onClose} aria-label="Close" type="button">×</button>
+            <button className="sheetClose" onClick={onClose} aria-label={t("Close")} type="button">×</button>
             {children}
           </motion.div>
         </motion.div>
@@ -132,14 +134,16 @@ export function Sheet({ open, onClose, children, label }: { open: boolean; onClo
 }
 
 export function MealDetail({ meal, macros, footer }: { meal: Meal; macros?: Macros; footer?: ReactNode }) {
+  const { t, c } = useI18n();
+  const category = meal.category === "main" ? t("Lunch & dinner") : meal.category === "breakfast" ? t("Breakfast") : t("Snack");
   return (
     <div className="mealDetail">
-      <div className="mdMedia"><img src={meal.image} alt={meal.name} /></div>
+      <div className="mdMedia"><img src={meal.image} alt={c.meal(meal)} /></div>
       <div className="mdBody">
-        <span className="eyebrow"><i className="dot" />{meal.category === "main" ? "Lunch & dinner" : meal.category}</span>
-        <h2 className="display">{meal.name}</h2>
-        <p className="lead">{meal.description}</p>
-        <div className="tagRow">{meal.tags.map((t) => <span key={t} className="tag">{tagLabel(t)}</span>)}</div>
+        <span className="eyebrow"><i className="dot" />{category}</span>
+        <h2 className="display m">{c.meal(meal)}</h2>
+        <p className="lead">{c.mealDesc(meal)}</p>
+        <div className="tagRow">{meal.tags.map((tag) => <span key={tag} className="tag">{c.tag(tag)}</span>)}</div>
         <NutritionLabel meal={meal} macros={macros} />
         {footer}
       </div>
