@@ -8,8 +8,8 @@ import { MealCard, MealDetail, Sheet } from "../components/meal";
 import { Footer } from "../components/layout";
 import { useI18n } from "../i18n";
 
-const DIETS: Tag[] = ["high-protein", "vegetarian", "vegan", "keto", "gluten-free", "dairy-free"];
-const ALLERGENS: Allergen[] = ["gluten", "dairy", "egg", "nuts", "sesame", "soy", "fish"];
+const DIETS: Tag[] = ["high-protein", "low-carb", "vegetarian", "spicy"];
+const ALLERGENS: Allergen[] = ["gluten", "dairy", "egg", "nuts", "sesame", "fish", "shellfish"];
 
 export default function Menu() {
   const { t, c } = useI18n();

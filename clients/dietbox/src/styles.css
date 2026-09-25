@@ -178,7 +178,7 @@ button { font: inherit; color: inherit; }
 
 /* ---------- Goals ---------- */
 .goals { padding-top: clamp(120px, 13vw, 190px); }
-.goalGrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.goalGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .goalCell { min-width: 0; }
 .goalCard { height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 18px; padding: 24px 22px 20px; border-radius: var(--r-card); background: var(--chalk); box-shadow: inset 0 0 0 1px var(--line); color: inherit; text-decoration: none; transition: box-shadow 250ms ease, transform 250ms var(--ease-out); }
 .goalThumb { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 4px var(--bone), 0 0 0 5px var(--line); }
@@ -302,7 +302,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.18); }
 
 /* ---------- Pricing ---------- */
 .pricingControls { display: flex; gap: 20px; flex-wrap: wrap; }
-.priceGrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; align-items: stretch; }
+.priceGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: stretch; }
 .priceCard { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 28px 22px 22px; border-radius: var(--r-card); background: var(--chalk); box-shadow: inset 0 0 0 1px var(--line); }
 .priceCard.featured { background: var(--carbon); color: var(--bone); box-shadow: none; transform: translateY(-12px); }
 .priceFlag { position: absolute; top: -12px; left: 24px; padding: 5px 12px; border-radius: var(--r-pill); background: var(--volt); color: var(--carbon); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; transform: rotate(-3deg); }
@@ -578,7 +578,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.18); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1180px) {
-  .priceGrid { grid-template-columns: repeat(3, 1fr); }
+  .priceGrid { grid-template-columns: repeat(2, 1fr); }
   .priceCard.featured { transform: none; }
   .builderGrid { grid-template-columns: 1fr 320px; }
 }
@@ -694,7 +694,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.18); }
 .tabular, .chip, .kcalBadge, .priceBig, .ringCenter strong, .rRow b, input[type="tel"] { unicode-bidi: plaintext; }
 
 @media (max-width: 1180px) {
-  .goalGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .goalGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .previewGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 960px) {

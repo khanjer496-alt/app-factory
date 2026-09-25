@@ -45,7 +45,7 @@ function catalogHelpers(locale: Locale) {
   };
 }
 
-const EN_TAGS: Record<Tag, string> = { "high-protein": "High protein", vegetarian: "Vegetarian", vegan: "Vegan", keto: "Keto", "gluten-free": "Gluten-free", "dairy-free": "Dairy-free", spicy: "Spicy" };
+const EN_TAGS: Record<Tag, string> = { "high-protein": "High protein", "low-carb": "Low carb", vegetarian: "Vegetarian", vegan: "Vegan", spicy: "Spicy" };
 const EN_SLOTS: Record<Slot, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snack1: "Snack", snack2: "Snack" };
 
 interface I18n {

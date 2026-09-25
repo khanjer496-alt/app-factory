@@ -192,10 +192,10 @@ Anti-patterns: glassmorphism everywhere, purple gradients, glowing cards, emoji 
 
 Photography is the product, so it should make up about half of the brand's visual weight.
 
-**Direction:** the food is the hero, shot close with nothing distracting. Two looks:
+**Direction:** the food is the hero, shot close with nothing distracting. Diet Box already has a house style that fits the brand, and new shoots should match it:
 
-1. **Night kitchen** (hero, social, dark sections): Carbon or slate surface, a single hard key light, deep shadows, glossy highlights on sauces, steam.
-2. **Morning counter** (menu, cards): Bone or white stone, soft daylight, overhead or 45°, generous negative space.
+1. **Volt set** (menu, cards, hero; the current Diet Box photography): the real delivery bowl or plate on a flat Volt-yellow background, shot overhead or at 45°, with soft shadows and nothing else in frame. Breakfasts may add the black plate and gingham cloth.
+2. **Night kitchen** (social, dark sections, campaigns): Carbon or slate surface, a single hard key light, deep shadows, glossy highlights on sauces, steam.
 
 **Rules**
 
@@ -204,7 +204,7 @@ Photography is the product, so it should make up about half of the brand's visua
 - Keep people shots about movement: training, commuting, early mornings. Show hands and effort rather than posed smiles.
 - Keep the colour grade warm but not orange. Keep blacks deep, and never lift them into grey.
 
-> **Placeholder notice:** the current site uses licensed Unsplash photography purely as placeholders. Replace every image with a Dietbox shoot before launch. The shot list is in §11.
+> **Photography status:** the site uses Diet Box's own menu photos from its talabat listing. Before launch, confirm usage rights, get the originals, and reshoot the off-style shots (Chicken Lasagna, Low-Carb Chicken Salad) on the Volt set. See `ASSET_CREDITS.md`; the shot list is in §11.
 
 ---
 

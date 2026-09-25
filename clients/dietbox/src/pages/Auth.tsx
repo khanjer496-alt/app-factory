@@ -17,7 +17,7 @@ function AuthFrame({ title, eyebrow, children }: { title: ReactNode[]; eyebrow: 
         {children}
       </section>
       <aside className="authArt" aria-hidden>
-        <img src="/meals/sirloin-chimichurri.webp" alt="" />
+        <img src="/meals/butter-chicken.webp" alt="" />
         <p className="display l">{t("Train hard.")}<br /><em>{t("Eat smart.")}</em></p>
       </aside>
     </main>

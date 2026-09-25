@@ -26,9 +26,18 @@ describe("catalogue", () => {
       expect(menu.snack.length, `${p.id} snack`).toBeGreaterThanOrEqual(2);
     }
   });
+  it("keeps every dish's energy consistent with its macros (4/4/9 kcal per g, ±3%)", () => {
+    for (const m of MEALS) expect(Math.abs(4 * m.protein + 4 * m.carbs + 9 * m.fat - m.kcal) / m.kcal, m.id).toBeLessThanOrEqual(0.03);
+  });
+  it("prices plan meals below the same dishes on delivery apps", () => {
+    // Diet Box mains are AED 34–39 and breakfasts AED 18–28 on talabat; a direct plan should undercut them.
+    for (const p of PROGRAMS.filter((x) => x.portion <= 1)) { expect(p.mealPriceFils).toBeLessThan(3500); expect(p.breakfastPriceFils).toBeLessThan(2800); }
+  });
   it("only serves programme-eligible dishes", () => {
-    for (const cat of Object.values(menuFor("2026-10-05", "keto"))) for (const m of cat) expect(m.tags).toContain("keto");
-    for (const cat of Object.values(menuFor("2026-10-05", "plant"))) for (const m of cat) expect(m.tags.some((t) => t === "vegetarian" || t === "vegan")).toBe(true);
+    for (const cat of Object.values(menuFor("2026-10-05", "keto"))) for (const m of cat) {
+      expect(m.tags).toContain("low-carb");
+      expect(m.carbs).toBeLessThanOrEqual(20);
+    }
   });
   it("default picks are valid and lunch ≠ dinner", () => {
     const picks = defaultSelections("2026-10-05", "balance", 5);
@@ -37,7 +46,7 @@ describe("catalogue", () => {
     expect(picks.find((p) => p.slot === "lunch")!.mealId).not.toBe(picks.find((p) => p.slot === "dinner")!.mealId);
   });
   it("rejects selections outside the day's menu or slot category", () => {
-    expect(isAllowedSelection("2026-10-05", "keto", "lunch", "protein-pancakes")).toBe(false);
+    expect(isAllowedSelection("2026-10-05", "keto", "lunch", "butter-chicken-pasta")).toBe(false);
     const breakfast = menuFor("2026-10-05", "balance").breakfast[0];
     expect(isAllowedSelection("2026-10-05", "balance", "dinner", breakfast.id)).toBe(false);
     expect(slotCategory("snack2")).toBe("snack");
@@ -48,15 +57,15 @@ describe("catalogue", () => {
 describe("pricing", () => {
   it("computes integer fils with week discounts", () => {
     const q = quote({ program: "balance", mealsPerDay: 3, daysPerWeek: 5, weeks: 4 });
-    expect(q.perDay).toBe(3 * 4200);
-    expect(q.subtotal).toBe(3 * 4200 * 20);
+    expect(q.perDay).toBe(2400 + 2 * 3200);
+    expect(q.subtotal).toBe((2400 + 2 * 3200) * 20);
     expect(q.discount).toBe(Math.round(q.subtotal * 0.1));
     expect(q.total).toBe(q.subtotal - q.discount);
     expect(Number.isInteger(q.total)).toBe(true);
   });
   it("prices snacks separately", () => {
     const q = quote({ program: "muscle", mealsPerDay: 4, daysPerWeek: 5, weeks: 1 });
-    expect(q.perDay).toBe(3 * 5200 + 1900);
+    expect(q.perDay).toBe(2900 + 2 * 3900 + 1500);
   });
   it("rejects invalid configurations", () => {
     expect(isValidPlan({ program: "balance", mealsPerDay: 9, daysPerWeek: 5, weeks: 1 })).toBe(false);
@@ -92,6 +101,6 @@ describe("nutrition", () => {
     expect(kcal).toBeGreaterThan(2400);
     expect(kcal).toBeLessThan(3000);
     const m = macroSplit(2000, "keto");
-    expect(m.carbs).toBeLessThan(30);
+    expect(m.carbs).toBeLessThan(macroSplit(2000, "balance").carbs / 2);
   });
 });

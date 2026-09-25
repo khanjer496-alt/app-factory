@@ -89,7 +89,7 @@ export default function Dashboard() {
   }
 
   const order = plan.order;
-  const program = PROGRAMS_BY_ID[order.program];
+  const program = PROGRAMS_BY_ID[order.program] ?? PROGRAMS_BY_ID.balance;
   const day = plan.days?.find((d) => d.date === selected);
   const target = order.kcal_target ? macroSplit(order.kcal_target, order.program) : null;
   const dayTotals = day?.selections.reduce((sum, s) => {

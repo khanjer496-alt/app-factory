@@ -34,7 +34,7 @@ Dietbox sells auto-renewing (cancel anytime), chef-cooked meal plans portioned t
 
 ## Business rules
 
-- Programmes: Lean ×0.85, Balance ×1, Muscle ×1.3, Keto (keto dishes only), Plant (vegetarian/vegan only).
+- Programmes: Lean ×0.85, Balance ×1, Muscle ×1.3, Low Carb (id `keto`; dishes with 20 g of carbs or less). Plan meals are priced per slot: breakfast, lunch/dinner and snack.
 - Meals/day 2–5 (4th/5th are snacks at AED 19); days/week 5 (Mon–Fri), 6 (Mon–Sat), 7; plan length 1/2/4 weeks (0/5/10% off).
 - Earliest start and edit lock: **2 days** in Asia/Dubai time.
 - Skipping a day appends one delivery day after the last scheduled day.
@@ -50,9 +50,10 @@ These are brand propositions written for the redesign. Dietbox must confirm or e
 
 - Delivery windows (5–8 AM / 6–10 PM) and coverage of all 7 emirates.
 - "Weighed ±5 g", "cooked fresh every morning", 48-hour change lock.
-- Every dish, macro value and allergen (currently indicative placeholders).
-- Programme prices (currently placeholders: AED 39–52 per meal).
-- All photography (Unsplash placeholders — replace with a Dietbox shoot).
+- Every dish, macro value and **allergen**. The menu is Diet Box's real talabat menu; values are reconciled or estimated as listed in `MENU_NUTRITION.md`, which the kitchen should sign off line by line.
+- Programme prices. They are proposed to undercut the same dishes on talabat (mains AED 34–39, breakfasts AED 18–28): per meal, Lean AED 22 breakfast / 29 main, Balance 24 / 32, Muscle 29 / 39, Low Carb 26 / 34, snacks AED 15.
+- Photo rights and originals (see `ASSET_CREDITS.md`).
+- Programmes: Plant is retired (the menu has no vegetarian mains) and Keto is now Low Carb (20 g of carbs or less per meal).
 
 ## Out of scope (next)
 

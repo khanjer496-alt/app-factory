@@ -15,7 +15,7 @@ export const productConfig = {
     // (worker/services/meal-billing.ts). The starter's generic Pro-plan checkout is not used by Dietbox.
     enabled: false,
     plans: [
-      { id: "meal-plan", name: "Meal plan package", priceLabel: "from AED 39/meal" },
+      { id: "meal-plan", name: "Meal plan package", priceLabel: "from AED 22/meal" },
     ],
   },
   features: {

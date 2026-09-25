@@ -27,7 +27,7 @@ Verification emails are written to `.wrangler/tmp/email/…` locally (path print
 - `worker/routes/admin.ts` — kitchen production sheet.
 - `db/migrations/0002_meal_plans.sql` — addresses, orders, delivery days, selections.
 - `src/pages/*` — Landing, Menu, Builder, Dashboard, Auth, Admin.
-- `public/brand/` — logo files taken from dietbox.ae (raster; request vectors), `public/meals/` + `public/scenes/` — placeholder photography (Unsplash).
+- `public/brand/` — logo files taken from dietbox.ae (raster; request vectors), `public/meals/` + `public/scenes/` — Diet Box's own menu photos (from its talabat listing; see `ASSET_CREDITS.md`). `MENU_NUTRITION.md` — nutrition and allergen review sheet for the kitchen.
 
 ## Client preview (workers.dev)
 

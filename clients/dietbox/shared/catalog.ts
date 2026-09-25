@@ -1,10 +1,11 @@
 // Single source of truth for the Dietbox menu, programmes and pricing.
 // Imported by the UI (display) and the Worker (validation + authoritative price).
-// Nutrition values are indicative placeholders until lab/dietitian verification (see BRAND_GUIDELINES.md §9).
+// Dishes and photos are Diet Box's own menu (talabat listing). Nutrition is reconciled from the kitchen's listed values and
+// the photographed portions (see MENU_NUTRITION.md) and must be verified by the kitchen/dietitian before launch.
 
 export type Category = "breakfast" | "main" | "snack";
 export type Slot = "breakfast" | "lunch" | "dinner" | "snack1" | "snack2";
-export type Tag = "high-protein" | "vegetarian" | "vegan" | "keto" | "gluten-free" | "dairy-free" | "spicy";
+export type Tag = "high-protein" | "low-carb" | "vegetarian" | "vegan" | "spicy";
 export type Allergen = "gluten" | "dairy" | "egg" | "nuts" | "sesame" | "soy" | "fish" | "shellfish";
 
 export interface Meal {
@@ -26,47 +27,83 @@ const m = (id: string, name: string, category: Category, [kcal, protein, carbs, 
 
 export const MEALS: Meal[] = [
   // Breakfast
-  m("shakshuka", "Spiced Shakshuka & Feta", "breakfast", [410, 25, 14, 28], ["keto", "vegetarian", "gluten-free"], ["egg", "dairy"], "Eggs baked in smoky tomato and pepper sauce with feta, coriander and a pinch of cumin."),
-  m("avo-egg-sourdough", "Avo & Jammy Egg Sourdough", "breakfast", [460, 22, 38, 24], ["vegetarian"], ["gluten", "egg"], "Smashed avocado, 7-minute egg, chilli flakes and spinach on toasted sourdough."),
-  m("protein-french-toast", "Protein French Toast", "breakfast", [480, 34, 52, 13], ["high-protein", "vegetarian"], ["gluten", "egg", "dairy"], "Brioche soaked in whey custard, blueberries, banana and a thread of date syrup."),
-  m("green-goddess-bowl", "Green Goddess Egg Bowl", "breakfast", [410, 24, 12, 29], ["keto", "vegetarian", "gluten-free"], ["egg"], "Two eggs, avocado, courgette ribbons, radish and green tahini dressing."),
-  m("egg-toast", "Sunny Egg Toast & Turkey", "breakfast", [440, 33, 34, 18], ["high-protein"], ["gluten", "egg"], "Fried egg on seeded toast with smoked turkey, tomato jam and rocket."),
-  m("protein-pancakes", "Stacked Protein Pancakes", "breakfast", [510, 36, 58, 12], ["high-protein", "vegetarian"], ["gluten", "egg", "dairy"], "Oat and whey pancakes, Greek yoghurt, banana and a drizzle of honey."),
+  m("halloumi-wrap", "Halloumi Wrap", "breakfast", [344, 18, 32, 16], ["vegetarian"], ["gluten", "dairy"], "Grilled halloumi, crisp lettuce and tomato in a wholewheat wrap."),
+  m("turkey-cheese-sandwich", "Turkey & Cheese Sandwich", "breakfast", [332, 28, 30, 11], ["high-protein"], ["gluten", "dairy"], "Sliced turkey, cheese, lettuce and tomato on brown bread."),
+  m("blueberry-pancakes", "Blueberry Pancakes", "breakfast", [320, 9, 48, 10], ["vegetarian"], ["gluten", "egg", "dairy"], "Fluffy pancakes with fresh blueberries and a drizzle of syrup."),
+  m("mushroom-omelette", "Mushroom Omelette", "breakfast", [348, 24, 18, 20], ["low-carb", "vegetarian"], ["egg", "dairy", "gluten"], "Soft eggs with mushrooms and cheese, and a slice of toast."),
+  m("strawberry-oats", "Oats with Strawberry", "breakfast", [290, 11, 41, 9], ["vegetarian"], ["gluten", "dairy"], "Oats cooked in milk with fresh strawberries and a touch of honey."),
+  m("cheese-french-toast", "Cheese French Toast", "breakfast", [385, 19, 32, 20], ["vegetarian"], ["gluten", "egg", "dairy"], "Golden egg-dipped toast with melted cheese."),
+  m("spanish-omelette", "Spanish Omelette", "breakfast", [322, 22, 18, 18], ["low-carb", "vegetarian"], ["egg", "dairy", "gluten"], "Eggs, spinach and cheese, with a slice of toast."),
+  m("peanut-butter-toast", "Peanut Butter Toast", "breakfast", [285, 11, 24, 16], ["vegetarian"], ["gluten", "nuts"], "Brown toast spread thick with peanut butter."),
+  m("labneh-zaatar", "Labneh & Za'atar", "breakfast", [242, 13, 34, 6], ["vegetarian"], ["gluten", "dairy", "sesame"], "Creamy labneh and za'atar on wholewheat bread."),
+  m("egg-cheese-bun", "Egg & Cheese Bun", "breakfast", [320, 17, 29, 15], ["vegetarian"], ["gluten", "egg", "dairy"], "Fried egg, cheese, lettuce and tomato in a wholewheat bun."),
+  m("egg-cheese-wrap", "Egg & Cheese Wrap", "breakfast", [380, 24, 31, 18], ["vegetarian"], ["gluten", "egg", "dairy"], "Scrambled eggs, cheese and greens in a tortilla."),
+  m("five-egg-omelette", "Five-Egg Omelette", "breakfast", [440, 34, 17, 26], ["high-protein", "low-carb", "vegetarian"], ["egg", "gluten"], "Five whole eggs, cooked soft, with brown toast."),
+  m("egg-white-omelette", "Egg-White Omelette", "breakfast", [215, 21, 16, 7], ["high-protein", "low-carb", "vegetarian"], ["egg", "gluten"], "Five egg whites with brown toast. Light and lean."),
 
-  // Mains (lunch + dinner)
-  m("thai-red-curry", "Thai Red Curry Chicken", "main", [560, 42, 48, 20], ["high-protein", "spicy", "gluten-free", "dairy-free"], [], "Coconut-light red curry, chicken thigh, Thai basil and jasmine rice."),
-  m("salmon-salsa-verde", "Seared Salmon, Pomegranate Salsa", "main", [540, 38, 11, 38], ["keto", "high-protein", "gluten-free", "dairy-free"], ["fish"], "Crisp-skin salmon, charred asparagus, pickled red onion and a sharp herb-pomegranate salsa."),
-  m("pesto-farfalle", "Pesto Farfalle, Blistered Tomato", "main", [590, 22, 74, 22], ["vegetarian"], ["gluten", "dairy", "nuts"], "Basil-pistachio pesto, blistered cherry tomatoes and pecorino."),
-  m("chicken-toum-plate", "Charred Chicken & Toum", "main", [580, 48, 44, 22], ["high-protein", "dairy-free"], [], "Shawarma-spiced chicken, garlic toum, crisp leaves and baked falafel."),
-  m("sirloin-chimichurri", "Sliced Sirloin, Chimichurri", "main", [610, 49, 12, 40], ["keto", "high-protein", "gluten-free", "dairy-free"], [], "Grass-fed sirloin, green chimichurri, charred peppers and leaves."),
-  m("falafel-power-bowl", "Falafel Power Bowl", "main", [560, 21, 66, 23], ["vegan", "vegetarian", "dairy-free"], ["sesame"], "Baked falafel, chickpeas, herbed freekeh, pickled onion and tahini."),
-  m("buddha-bowl", "Rainbow Buddha Bowl", "main", [520, 18, 62, 22], ["vegan", "vegetarian", "gluten-free", "dairy-free"], ["sesame"], "Roast sweet potato, avocado, chickpeas, red cabbage, radish and miso-tahini."),
-  m("lemon-linguine", "Lemon Garlic Linguine", "main", [570, 23, 78, 17], ["vegetarian"], ["gluten", "dairy"], "Linguine, garden peas, lemon zest, chilli and parmesan."),
-  m("teriyaki-salmon", "Teriyaki Glazed Salmon", "main", [590, 40, 52, 22], ["high-protein", "dairy-free"], ["fish", "soy", "sesame", "gluten"], "Low-sugar teriyaki salmon, sesame greens and brown rice."),
-  m("beef-kofta", "Beef Kofta, Rocket & Sumac", "main", [560, 42, 11, 38], ["keto", "high-protein", "gluten-free"], ["dairy"], "Spiced beef kofta, rocket, sumac onions and garlic yoghurt."),
-  m("lemon-herb-chicken", "Lemon & Rosemary Chicken", "main", [480, 52, 14, 22], ["keto", "high-protein", "gluten-free", "dairy-free"], [], "Grilled chicken breast, lemon, rosemary and roast vegetables."),
-  m("harvest-salad", "Harvest Salad & Halloumi", "main", [530, 24, 38, 31], ["vegetarian", "gluten-free"], ["dairy", "nuts"], "Grilled halloumi, roast squash, avocado, pomegranate and walnuts."),
-  m("sesame-tofu-poke", "Sesame Tofu Poke", "main", [540, 26, 58, 21], ["vegan", "vegetarian", "dairy-free"], ["soy", "sesame"], "Crispy tofu, sushi rice, edamame, corn, cucumber and ponzu."),
-  m("chicken-caesar", "Chicken Caesar, Lightened", "main", [490, 46, 12, 28], ["keto", "high-protein", "gluten-free"], ["dairy", "egg", "fish"], "Grilled chicken, romaine, parmesan crisps and yoghurt Caesar dressing."),
-  m("avocado-quinoa-bowl", "Avocado Quinoa Bowl", "main", [510, 17, 56, 24], ["vegan", "vegetarian", "gluten-free", "dairy-free"], ["sesame"], "Red quinoa, avocado, black sesame, chilli, lemon and greens."),
-  m("moroccan-couscous", "Moroccan Couscous Bowl", "main", [550, 20, 76, 17], ["vegetarian"], ["gluten", "dairy"], "Ras el hanout vegetables, herbed couscous, chickpeas and whipped feta."),
-  m("shish-tawook", "Shish Tawook Skewers", "main", [520, 50, 14, 28], ["keto", "high-protein", "gluten-free"], ["dairy"], "Yoghurt-marinated chicken skewers, charred tomato and garlic sauce."),
-  m("bibimbap", "Veggie Bibimbap", "main", [560, 22, 72, 19], ["vegetarian", "spicy"], ["egg", "soy", "sesame"], "Rice, seasoned vegetables, fried egg and gochujang dressing."),
-  m("smash-burger", "Lean Smash Burger", "main", [640, 44, 52, 27], ["high-protein"], ["gluten", "dairy", "egg"], "Lean beef smash patty, light cheese, pickles and baked fries."),
-  m("grilled-chicken-peas", "Grilled Chicken & Minted Peas", "main", [500, 51, 30, 17], ["high-protein", "gluten-free", "dairy-free"], [], "Grilled chicken breast, minted peas, carrots and herb mash."),
-  m("tikka-skillet", "Chicken Tikka Skillet", "main", [530, 47, 13, 31], ["keto", "high-protein", "gluten-free", "spicy"], ["dairy"], "Tandoori chicken and peppers in a smoky tikka sauce with fresh basil."),
+  // Mains: rice plates, pasta and risotto, burgers and wraps, meal salads
+  m("mushroom-chicken", "Creamy Mushroom Chicken", "main", [510, 50, 48, 13], ["high-protein"], ["dairy"], "Chicken in a creamy mushroom sauce, with white rice."),
+  m("chicken-biryani", "Chicken Biryani", "main", [488, 44, 42, 16], ["high-protein"], ["dairy"], "Fragrant basmati layered with spiced chicken."),
+  m("butter-chicken", "Butter Chicken", "main", [570, 44, 42, 25], ["high-protein"], ["dairy"], "Tender chicken in a rich tomato-butter sauce, with basmati rice."),
+  m("sweet-chilli-chicken", "Sweet & Spicy Chicken", "main", [500, 40, 46, 17], ["high-protein", "spicy"], ["gluten"], "Chicken and peppers in a sweet chilli glaze, with oven-roasted potatoes."),
+  m("chicken-tikka", "Chicken Tikka", "main", [455, 42, 42, 13], ["high-protein"], ["dairy"], "Char-grilled tikka chicken with peppers and onion, basmati rice and lemon."),
+  m("chicken-tikka-masala", "Chicken Tikka Masala", "main", [576, 42, 48, 24], ["high-protein"], ["dairy"], "Chicken tikka in a spiced masala sauce, with basmati rice."),
+  m("bbq-chicken", "BBQ Chicken", "main", [518, 42, 38, 22], ["high-protein"], [], "Chicken glazed in smoky barbecue sauce, with basmati rice."),
+  m("chicken-curry", "Chicken Curry", "main", [590, 47, 42, 26], ["high-protein"], ["dairy"], "Chicken in a golden, mildly spiced curry sauce, with basmati rice."),
+  m("grilled-chicken", "Grilled Chicken & Rice", "main", [499, 54, 46, 11], ["high-protein"], [], "Sliced grilled chicken breast with lemon, a light sauce and basmati rice."),
+  m("dynamite-chicken", "Dynamite Chicken", "main", [462, 46, 11, 26], ["high-protein", "low-carb", "spicy"], ["gluten", "egg"], "Crispy chicken in a creamy, spicy dynamite sauce on a bed of lettuce."),
+  m("white-fish", "Grilled White Fish", "main", [452, 40, 46, 12], ["high-protein"], ["fish", "dairy"], "Grilled white fish with mushroom sauce and basmati rice."),
+  m("tuna-rice-bowl", "Tuna Rice Bowl", "main", [428, 35, 45, 12], ["high-protein"], ["fish"], "Flaked tuna folded through rice with parsley and lemon."),
+  m("shrimp-biryani", "Shrimp Biryani", "main", [459, 35, 55, 11], ["high-protein"], ["shellfish", "dairy"], "Spiced shrimp with fragrant biryani rice."),
+  m("meat-biryani", "Meat Biryani", "main", [606, 44, 58, 22], ["high-protein"], ["dairy"], "Tender spiced meat with biryani rice and a side of raita."),
+  m("beef-mushrooms", "Beef with Mushrooms", "main", [567, 44, 46, 23], ["high-protein"], ["dairy"], "Beef strips and mushrooms in a savoury sauce, with basmati rice."),
+  m("steak-mash", "Steak & Mash", "main", [544, 43, 30, 28], ["high-protein"], ["dairy"], "Seared steak with creamy mashed potato and parsley."),
+  m("butter-chicken-pasta", "Butter Chicken Pasta", "main", [615, 47, 55, 23], ["high-protein"], ["gluten", "dairy"], "Penne and chicken in a creamy butter-chicken sauce with parmesan."),
+  m("rose-chicken-pasta", "Chicken Pasta, Rosé Sauce", "main", [570, 48, 51, 19], ["high-protein"], ["gluten", "dairy"], "Penne and chicken in a creamy tomato sauce with parmesan."),
+  m("buffalo-chicken-pasta", "Buffalo Chicken Pasta", "main", [614, 46, 55, 23], ["high-protein", "spicy"], ["gluten", "dairy"], "Penne and chicken in a spicy buffalo cream sauce."),
+  m("white-chicken-pasta", "Chicken Pasta, White Sauce", "main", [551, 40, 55, 19], ["high-protein"], ["gluten", "dairy"], "Penne and chicken in a light white sauce with parmesan."),
+  m("red-chicken-pasta", "Chicken Pasta, Red Sauce", "main", [512, 44, 48, 16], ["high-protein"], ["gluten", "dairy"], "Penne and grilled chicken in tomato sauce with parmesan."),
+  m("white-shrimp-pasta", "Shrimp Pasta, White Sauce", "main", [521, 38, 45, 21], ["high-protein"], ["gluten", "dairy", "shellfish"], "Penne and shrimp in a light white sauce."),
+  m("rose-shrimp-pasta", "Shrimp Pasta, Rosé Sauce", "main", [533, 44, 51, 17], ["high-protein"], ["gluten", "dairy", "shellfish"], "Penne and shrimp in a creamy tomato sauce."),
+  m("chicken-risotto", "Chicken Risotto", "main", [590, 46, 52, 22], ["high-protein"], ["dairy"], "Creamy risotto with chicken and parmesan."),
+  m("shrimp-risotto", "Shrimp Risotto", "main", [562, 39, 52, 22], ["high-protein"], ["dairy", "shellfish"], "Creamy risotto with shrimp and parmesan."),
+  m("spaghetti-bolognese", "Spaghetti Bolognese", "main", [518, 41, 48, 18], ["high-protein"], ["gluten", "dairy"], "Spaghetti with beef bolognese and parmesan."),
+  m("chicken-lasagna", "Chicken Lasagna", "main", [610, 30, 55, 30], ["high-protein"], ["gluten", "dairy", "egg"], "Layers of pasta, chicken, low-fat cheese and a light tomato sauce."),
+  m("classic-chicken-burger", "Classic Chicken Burger", "main", [431, 35, 30, 19], ["high-protein"], ["gluten", "dairy", "egg"], "Chicken patty, cheese, lettuce and Diet Box sauce in a wholewheat bun."),
+  m("grilled-chicken-burger", "Grilled Chicken Burger", "main", [390, 36, 30, 14], ["high-protein"], ["gluten", "dairy", "egg"], "Grilled chicken breast, cheese and lettuce in a wholewheat bun."),
+  m("mushroom-chicken-burger", "Mushroom Chicken Burger", "main", [386, 35, 30, 14], ["high-protein"], ["gluten", "dairy", "egg"], "Grilled chicken with mushrooms, cheese, lettuce and Diet Box sauce."),
+  m("buffalo-chicken-burger", "Buffalo Chicken Burger", "main", [470, 38, 30, 22], ["high-protein", "spicy"], ["gluten", "dairy", "egg"], "Chicken in spicy buffalo sauce with cheese and lettuce."),
+  m("classic-beef-burger", "Classic Beef Burger", "main", [476, 34, 31, 24], ["high-protein"], ["gluten", "dairy", "egg"], "Grilled beef patty, cheese, lettuce and Diet Box sauce."),
+  m("mushroom-beef-burger", "Mushroom Beef Burger", "main", [494, 36, 38, 22], ["high-protein"], ["gluten", "dairy", "egg"], "Beef patty with mushroom sauce, cheese and lettuce."),
+  m("buffalo-chicken-wrap", "Buffalo Chicken Wrap", "main", [386, 34, 31, 14], ["high-protein", "spicy"], ["gluten", "dairy"], "Buffalo chicken, greens and cheese in a wholewheat wrap."),
+  m("chicken-fajita-wrap", "Chicken Fajita Wrap", "main", [377, 34, 31, 13], ["high-protein"], ["gluten", "dairy"], "Fajita chicken with peppers in a wholewheat wrap."),
+  m("philly-steak-wrap", "Philly Cheese Steak Wrap", "main", [420, 35, 34, 16], ["high-protein"], ["gluten", "dairy"], "Sliced beef, peppers and melted cheese in a wholewheat wrap."),
+  m("beef-sandwich", "Beef Sandwich", "main", [490, 35, 38, 22], ["high-protein"], ["gluten", "dairy"], "Toasted brown bread with sliced beef and cheese."),
+  m("chicken-wrap", "Chicken Wrap", "main", [357, 30, 30, 13], ["high-protein"], ["gluten", "dairy"], "Grilled chicken, greens and cheese in a wholewheat wrap."),
+  m("chicken-sandwich", "Chicken Sandwich", "main", [453, 37, 38, 17], ["high-protein"], ["gluten", "dairy"], "Toasted brown bread with grilled chicken and cheese."),
+  m("tuna-sandwich", "Tuna Sandwich", "main", [343, 32, 29, 11], ["high-protein"], ["gluten", "fish"], "Tuna, lettuce and sweetcorn in a wholewheat wrap."),
+  m("chicken-tikka-caesar", "Chicken Tikka Caesar", "main", [411, 48, 12, 19], ["high-protein", "low-carb"], ["gluten", "dairy", "egg", "fish"], "Chicken tikka, lettuce, parmesan and croutons with a light Caesar dressing."),
+  m("chicken-caesar", "Chicken Caesar", "main", [402, 48, 12, 18], ["high-protein", "low-carb"], ["gluten", "dairy", "egg", "fish"], "Grilled chicken, lettuce, parmesan and croutons with a light Caesar dressing."),
+  m("chicken-caesar-pasta", "Chicken Caesar Pasta Salad", "main", [415, 40, 30, 15], ["high-protein"], ["gluten", "dairy", "egg", "fish"], "Chicken, penne and lettuce with parmesan and a light Caesar dressing."),
+  m("tuna-caesar", "Tuna Caesar", "main", [318, 36, 12, 14], ["high-protein", "low-carb"], ["gluten", "dairy", "egg", "fish"], "Tuna, lettuce, parmesan and croutons with a light Caesar dressing."),
+  m("keto-chicken-salad", "Low-Carb Chicken Salad", "main", [403, 46, 12, 19], ["high-protein", "low-carb"], [], "Grilled chicken, carrot, peppers and cucumber with lemon and olive oil."),
+  m("tuna-salad", "Tuna Salad", "main", [312, 33, 18, 12], ["high-protein", "low-carb"], ["fish"], "Tuna with sweetcorn, peppers, cucumber and a lemon dressing."),
 
-  // Snacks
-  m("strawberry-skyr-pot", "Strawberry Skyr Pot", "snack", [190, 17, 22, 3], ["high-protein", "vegetarian", "gluten-free"], ["dairy"], "Thick skyr, macerated strawberries and a crunch of granola dust."),
-  m("acai-superfood-bowl", "Mini Açaí Bowl", "snack", [230, 6, 38, 7], ["vegan", "vegetarian", "gluten-free", "dairy-free"], [], "Açaí, blackberries, kiwi, pomegranate and toasted coconut."),
-  m("rainbow-jar-salad", "Rainbow Jar Salad", "snack", [210, 9, 26, 8], ["vegan", "vegetarian", "dairy-free"], [], "Layered lentils, tomato, cucumber, pepper and lemon vinaigrette."),
-  m("greek-feta-salad", "Greek Tomato & Feta", "snack", [180, 7, 8, 13], ["keto", "vegetarian", "gluten-free"], ["dairy"], "Heirloom tomatoes, barrel-aged feta, olives and oregano."),
-  m("dark-leaf-salad", "Kale & Seed Crunch", "snack", [200, 8, 9, 15], ["keto", "vegan", "vegetarian", "gluten-free", "dairy-free"], ["sesame"], "Massaged kale, toasted seeds, pickled onion and cider dressing."),
+  // Snacks: side salads and sweets
+  m("greek-salad", "Greek Salad", "snack", [207, 8, 10, 15], ["low-carb", "vegetarian"], ["dairy"], "Low-fat feta, olives, tomato, cucumber and peppers with lemon dressing."),
+  m("green-salad", "Green Salad", "snack", [134, 4, 16, 6], ["low-carb", "vegetarian", "vegan"], [], "Peppers, sweetcorn, cucumber and lettuce with lemon dressing."),
+  m("tabbouleh", "Tabbouleh", "snack", [149, 3, 14, 9], ["low-carb", "vegetarian", "vegan"], ["gluten"], "Parsley, tomato, onion, bulgur and mint with lemon."),
+  m("rocket-salad", "Rocket Salad", "snack", [173, 6, 8, 13], ["low-carb", "vegetarian"], ["dairy", "nuts"], "Rocket, low-fat feta, walnuts and peppers with a spicy lemon dressing."),
+  m("energy-balls", "Energy Balls", "snack", [121, 4, 15, 5], ["vegetarian"], ["nuts"], "Two bite-size balls rolled in coconut."),
+  m("brownies", "Brownies", "snack", [328, 6, 40, 16], ["vegetarian"], ["gluten", "egg", "dairy"], "Two squares of rich chocolate brownie."),
+  m("fudge-cookies", "Fudge Chocolate Cookies", "snack", [298, 5, 38, 14], ["vegetarian"], ["gluten", "egg", "dairy"], "Two soft, fudgy chocolate cookies."),
+  m("chocolate-chip-cookie", "Chocolate Chip Cookie", "snack", [277, 4, 36, 13], ["vegetarian"], ["gluten", "egg", "dairy"], "One big chocolate chip cookie."),
+  m("vanilla-cake", "Vanilla Cake", "snack", [316, 7, 45, 12], ["vegetarian"], ["gluten", "egg", "dairy"], "Two squares of soft vanilla sponge."),
 ];
 
 export const MEALS_BY_ID: Record<string, Meal> = Object.fromEntries(MEALS.map((meal) => [meal.id, meal]));
 
-export type ProgramId = "lean" | "balance" | "muscle" | "keto" | "plant";
+export type ProgramId = "lean" | "balance" | "muscle" | "keto";
 
 export interface Program {
   id: ProgramId;
@@ -77,8 +114,10 @@ export interface Program {
   kcalRange: [number, number];
   /** Portion multiplier applied to the base recipe. */
   portion: number;
-  /** Price per breakfast/main in fils (AED × 100), VAT inclusive. */
+  /** Price per lunch/dinner in fils (AED × 100), VAT inclusive. Set below the same dish on delivery apps. */
   mealPriceFils: number;
+  /** Price per breakfast in fils, VAT inclusive. */
+  breakfastPriceFils: number;
   split: { protein: number; carbs: number; fat: number };
   image: string;
   eligible: (meal: Meal) => boolean;
@@ -86,16 +125,16 @@ export interface Program {
 
 const any = () => true;
 export const PROGRAMS: Program[] = [
-  { id: "lean", name: "Lean", goal: "Lose fat", tagline: "Cut without the hunger.", description: "Calorie-controlled portions with high protein to keep you full.", kcalRange: [1200, 1600], portion: 0.85, mealPriceFils: 3900, split: { protein: 0.35, carbs: 0.35, fat: 0.3 }, image: "/meals/lemon-herb-chicken.webp", eligible: any },
-  { id: "balance", name: "Balance", goal: "Maintain", tagline: "Everyday fuel, dialled in.", description: "Balanced macros for energy, focus and consistency.", kcalRange: [1700, 2100], portion: 1, mealPriceFils: 4200, split: { protein: 0.3, carbs: 0.4, fat: 0.3 }, image: "/meals/buddha-bowl.webp", eligible: any },
-  { id: "muscle", name: "Muscle", goal: "Build muscle", tagline: "Bigger plates. Bigger lifts.", description: "Larger portions with extra protein and carbs to support training.", kcalRange: [2300, 3000], portion: 1.3, mealPriceFils: 5200, split: { protein: 0.35, carbs: 0.45, fat: 0.2 }, image: "/meals/sirloin-chimichurri.webp", eligible: any },
-  { id: "keto", name: "Keto", goal: "Low carb", tagline: "Fat-fuelled. Carbs kept low.", description: "High-fat, very low-carb meals that keep you in ketosis.", kcalRange: [1500, 2000], portion: 1, mealPriceFils: 4900, split: { protein: 0.25, carbs: 0.05, fat: 0.7 }, image: "/meals/salmon-salsa-verde.webp", eligible: (meal) => meal.tags.includes("keto") },
-  { id: "plant", name: "Plant", goal: "Vegetarian", tagline: "All plants. Full power.", description: "Vegetarian and vegan dishes with complete protein in every meal.", kcalRange: [1500, 2000], portion: 1, mealPriceFils: 4200, split: { protein: 0.25, carbs: 0.5, fat: 0.25 }, image: "/meals/falafel-power-bowl.webp", eligible: (meal) => meal.tags.includes("vegetarian") || meal.tags.includes("vegan") },
+  { id: "lean", name: "Lean", goal: "Lose fat", tagline: "Cut without the hunger.", description: "Calorie-controlled portions with high protein to keep you full.", kcalRange: [1200, 1600], portion: 0.85, mealPriceFils: 2900, breakfastPriceFils: 2200, split: { protein: 0.35, carbs: 0.35, fat: 0.3 }, image: "/meals/grilled-chicken.webp", eligible: any },
+  { id: "balance", name: "Balance", goal: "Maintain", tagline: "Everyday fuel, dialled in.", description: "Balanced macros for energy, focus and consistency.", kcalRange: [1700, 2100], portion: 1, mealPriceFils: 3200, breakfastPriceFils: 2400, split: { protein: 0.3, carbs: 0.4, fat: 0.3 }, image: "/meals/butter-chicken.webp", eligible: any },
+  { id: "muscle", name: "Muscle", goal: "Build muscle", tagline: "Bigger plates. Bigger lifts.", description: "Larger portions with extra protein and carbs to support training.", kcalRange: [2300, 3000], portion: 1.3, mealPriceFils: 3900, breakfastPriceFils: 2900, split: { protein: 0.35, carbs: 0.45, fat: 0.2 }, image: "/meals/steak-mash.webp", eligible: any },
+  // id stays "keto" so existing orders keep working; the menu supports low carb (≤ 20 g a meal), not strict keto.
+  { id: "keto", name: "Low Carb", goal: "Low carb", tagline: "Carbs down. Protein up.", description: "Egg breakfasts, big salads and protein-led mains, each under 20 g of carbs.", kcalRange: [1300, 1800], portion: 1, mealPriceFils: 3400, breakfastPriceFils: 2600, split: { protein: 0.4, carbs: 0.15, fat: 0.45 }, image: "/meals/dynamite-chicken.webp", eligible: (meal) => meal.tags.includes("low-carb") },
 ];
 
 export const PROGRAMS_BY_ID: Record<string, Program> = Object.fromEntries(PROGRAMS.map((p) => [p.id, p]));
 
-export const SNACK_PRICE_FILS = 1900;
+export const SNACK_PRICE_FILS = 1500;
 export const MEALS_PER_DAY = [2, 3, 4, 5] as const;
 export const DAYS_PER_WEEK = [5, 6, 7] as const;
 export const WEEKS = [1, 2, 4] as const;
@@ -135,7 +174,8 @@ export function isValidPlan(input: Partial<PlanInput>): input is PlanInput {
 export function quote(input: PlanInput) {
   const program = PROGRAMS_BY_ID[input.program];
   const slots = SLOTS_BY_MEALS[input.mealsPerDay];
-  const perDay = slots.reduce((sum, slot) => sum + (slotCategory(slot) === "snack" ? SNACK_PRICE_FILS : program.mealPriceFils), 0);
+  const slotPrice = { breakfast: program.breakfastPriceFils, main: program.mealPriceFils, snack: SNACK_PRICE_FILS };
+  const perDay = slots.reduce((sum, slot) => sum + slotPrice[slotCategory(slot)], 0);
   const days = input.daysPerWeek * input.weeks;
   const subtotal = perDay * days;
   const discount = Math.round(subtotal * (WEEK_DISCOUNT[input.weeks] || 0));
@@ -188,7 +228,8 @@ const dayNumber = (iso: string) => Math.floor(Date.parse(`${iso}T00:00:00Z`) / 8
 
 /** Deterministic daily menu for a programme: the chef's rotation. */
 export function menuFor(date: string, programId: ProgramId): Record<Category, Meal[]> {
-  const program = PROGRAMS_BY_ID[programId];
+  // Orders from before the Plant programme was retired fall back to the Balance menu.
+  const program = PROGRAMS_BY_ID[programId] ?? PROGRAMS_BY_ID.balance;
   const n = dayNumber(date);
   const pick = (category: Category) => {
     const pool = MEALS.filter((meal) => meal.category === category && program.eligible(meal));

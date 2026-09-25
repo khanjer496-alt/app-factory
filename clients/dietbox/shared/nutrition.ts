@@ -23,6 +23,6 @@ export function dailyTarget(body: Body): number {
 }
 
 export function macroSplit(kcal: number, programId: ProgramId) {
-  const s = PROGRAMS_BY_ID[programId].split;
+  const s = (PROGRAMS_BY_ID[programId] ?? PROGRAMS_BY_ID.balance).split;
   return { kcal, protein: Math.round((kcal * s.protein) / 4), carbs: Math.round((kcal * s.carbs) / 4), fat: Math.round((kcal * s.fat) / 9) };
 }

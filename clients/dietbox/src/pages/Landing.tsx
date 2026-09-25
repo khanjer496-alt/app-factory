@@ -36,7 +36,7 @@ export default function Landing() {
 /* ---------------------------------- Hero ---------------------------------- */
 
 function Hero() {
-  const { t } = useI18n();
+  const { t, c } = useI18n();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const copyY = useTransform(scrollYProgress, [0, 1], ["0%", "24%"]);
@@ -54,7 +54,7 @@ function Hero() {
     my.set(((e.clientY - r.top) / r.height) * 2 - 1);
   }
 
-  const hero = MEALS_BY_ID["avocado-quinoa-bowl"];
+  const hero = MEALS_BY_ID["chicken-tikka"];
   return (
     <section className="hero" ref={ref} onPointerMove={onMove}>
       <div className="heroNoise" aria-hidden />
@@ -76,7 +76,7 @@ function Hero() {
         <div className="heroVisual">
           <motion.div className="heroDisc" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.2, ease: EASE_OUT }} />
           <motion.div className="heroPlateWrap" style={{ rotateX: rx, rotateY: ry }} initial={{ opacity: 0, scale: 0.9, rotate: -20 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 1.4, ease: EASE_OUT, delay: 0.1 }}>
-            <img className="heroPlate" src="/scenes/hero-bowl.webp" alt={t("Avocado quinoa bowl")} width={1600} height={1600} fetchPriority="high" />
+            <img className="heroPlate" src="/scenes/hero.webp" alt={c.meal(hero)} width={1200} height={1200} fetchPriority="high" />
           </motion.div>
           <motion.span className="heroChip c2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1, duration: 0.7, ease: EASE_OUT }}>
             <span className="float"><b>{hero.kcal}</b> {t("kcal")}</span>
@@ -97,7 +97,7 @@ function Goals() {
   return (
     <section className="section goals" id="goals">
       <div className="sectionHead center">
-        <Eyebrow>{t("Five programmes")}</Eyebrow>
+        <Eyebrow>{t("Four programmes")}</Eyebrow>
         <Lines className="display l" lines={[t("Pick your goal."), <em key="w">{t("We'll do the maths.")}</em>]} />
       </div>
       <div className="goalGrid">
@@ -110,7 +110,7 @@ function Goals() {
                 <h3 className="display s">{c.program(p)}</h3>
                 <span className="goalMeta">{t("{min}–{max} kcal", { min: p.kcalRange[0], max: p.kcalRange[1] })}</span>
               </div>
-              <span className="goalFrom">{t("from {price}/meal", { price: aed(p.mealPriceFils) })} <Arrow /></span>
+              <span className="goalFrom">{t("from {price}/meal", { price: aed(p.breakfastPriceFils) })} <Arrow /></span>
             </Link>
           </Reveal>
         ))}
@@ -126,7 +126,7 @@ function HowItWorks() {
   const ref = useRef<HTMLOListElement>(null);
   const inView = useInView(ref, { once: true, margin: "-120px" });
   const steps = [
-    [t("Pick your goal"), t("Five programmes, each with its own portions and macro split.")],
+    [t("Pick your goal"), t("Four programmes, each with its own portions and macro split.")],
     [t("Set your numbers"), t("We turn your height, weight and training into a daily calorie target.")],
     [t("Choose your rhythm"), t("2–5 meals a day, 5–7 days a week, for 1, 2 or 4 weeks.")],
     [t("We cook. You train."), t("Delivered 5–8 AM. Swap or skip up to 48 hours ahead.")],
@@ -158,8 +158,8 @@ function MenuPreview({ onOpen }: { onOpen: (m: Meal) => void }) {
   const filters: { id: string; label: string; test: (m: Meal) => boolean }[] = [
     { id: "all", label: t("All"), test: () => true },
     { id: "protein", label: t("High protein"), test: (m) => m.tags.includes("high-protein") },
-    { id: "plant", label: t("Plant"), test: (m) => m.tags.includes("vegetarian") || m.tags.includes("vegan") },
-    { id: "keto", label: t("Keto"), test: (m) => m.tags.includes("keto") },
+    { id: "lowcarb", label: t("Low carb"), test: (m) => m.tags.includes("low-carb") },
+    { id: "light", label: t("Under 400 kcal"), test: (m) => m.kcal < 400 },
   ];
   const [filter, setFilter] = useState("all");
   const meals = useMemo(() => MEALS.filter(filters.find((f) => f.id === filter)!.test).filter((m) => m.category !== "snack").slice(0, 4), [filter]); // eslint-disable-line react-hooks/exhaustive-deps
