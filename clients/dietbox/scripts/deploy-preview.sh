@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys the client preview to https://dietbox-preview.<your-subdomain>.workers.dev
+# Manual alternative to Workers Builds (see README). Deploys the client preview to https://dietbox-preview.<your-subdomain>.workers.dev
 # Needs CLOUDFLARE_API_TOKEN (Workers Scripts:Edit, D1:Edit) and CLOUDFLARE_ACCOUNT_ID.
 # Safe to re-run: it reuses the D1 database and secrets it created the first time.
 set -euo pipefail
@@ -21,22 +21,17 @@ SUB="$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.c
 [ -n "$SUB" ] || { echo "No workers.dev subdomain yet: open Workers & Pages in the Cloudflare dashboard once to claim one."; exit 1; }
 URL="https://$WORKER.$SUB.workers.dev"
 
-# Write the preview database id and URL into the preview block of wrangler.jsonc.
-node - "$ID" "$URL" <<'NODE'
+# Write the preview URL into the preview block of wrangler.jsonc (the database is found by name).
+node - "$URL" <<'NODE'
 const fs = require("fs");
-const [id, url] = process.argv.slice(2);
-let s = fs.readFileSync("wrangler.jsonc", "utf8");
-s = s.replace(/("database_name": "dietbox-preview-db",\s*"database_id": ")[^"]*"/, `$1${id}"`);
-s = s.replace(/https:\/\/dietbox-preview[^"]*/g, url);
-fs.writeFileSync("wrangler.jsonc", s);
+const [url] = process.argv.slice(2);
+const s = fs.readFileSync("wrangler.jsonc", "utf8");
+fs.writeFileSync("wrangler.jsonc", s.replace(/https:\/\/dietbox-preview[^"]*/g, url));
 NODE
 
-echo "→ migrations"
-npx wrangler d1 migrations apply DB --env preview --remote
-
-echo "→ build + deploy"
-CLOUDFLARE_ENV=preview npm run build
-npx wrangler deploy
+echo "→ build, migrations, deploy"
+npm run build:preview
+npm run deploy:preview
 
 echo "→ secrets (first run only)"
 EXISTING="$(npx wrangler secret list --env preview 2>/dev/null || true)"

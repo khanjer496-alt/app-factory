@@ -31,6 +31,22 @@ Verification emails are written to `.wrangler/tmp/email/…` locally (path print
 
 ## Client preview (workers.dev)
 
+Live at https://dietbox-preview.elemental-canopy.workers.dev. Cloudflare **Workers Builds** redeploys it on every push, so no API token lives outside Cloudflare. To connect it, go to Workers & Pages → `dietbox-preview` → Settings → Build → Connect, then set:
+
+| Setting | Value |
+| --- | --- |
+| Repository | `khanjer496-alt/app-factory` |
+| Branch | the branch to preview (`main` once merged) |
+| Root directory | `clients/dietbox` |
+| Build command | `npm run build:preview` |
+| Deploy command | `npm run deploy:preview` (applies D1 migrations, then deploys) |
+| Build watch paths | include `clients/dietbox/*` |
+| Non-production branch builds | off |
+
+The D1 database is looked up by name (`dietbox-preview-db`), and the preview URL is committed in `wrangler.jsonc` → `env.preview.vars`. Secrets (`BETTER_AUTH_SECRET`, `DEMO_CHECKOUT`) live on the Worker and survive deploys.
+
+Manual alternative from a machine with a token:
+
 ```bash
 export CLOUDFLARE_API_TOKEN=…   # Workers Scripts:Edit + D1:Edit
 export CLOUDFLARE_ACCOUNT_ID=…

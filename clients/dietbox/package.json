@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "deploy": "npm run build && wrangler deploy",
+    "build:preview": "CLOUDFLARE_ENV=preview npm run build",
+    "deploy:preview": "wrangler d1 migrations apply dietbox-preview-db --remote -c dist/dietbox/wrangler.json && wrangler deploy",
     "check": "npm run types:check && tsc -b && vite build && wrangler deploy --dry-run",
     "test": "vitest run",
     "test:e2e": "playwright test",
