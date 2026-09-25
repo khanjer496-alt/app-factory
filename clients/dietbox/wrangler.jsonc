@@ -1,0 +1,71 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dietbox",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  // 09:00 UAE: renewal reminders, demo renewals, charge-date alignment, closing finished plans.
+  "triggers": { "crons": ["0 5 * * *"] },
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "APP_NAME": "Dietbox",
+    "APP_ENV": "development",
+    "APP_URL": "http://localhost:5173",
+    "BETTER_AUTH_URL": "http://localhost:5173",
+    "EMAIL_FROM": "App Factory <noreply@example.com>",
+    "TURNSTILE_SITE_KEY": ""
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dietbox-db",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "db/migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "dietbox-files"
+    }
+  ],
+  "analytics_engine_datasets": [
+    {
+      "binding": "ANALYTICS",
+      "dataset": "dietbox_events"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL"
+    }
+  ],
+  // Client preview on workers.dev, deployed by Cloudflare Workers Builds on push (see README).
+  // No R2, email or Analytics Engine bindings: uploads are off for Dietbox, preview sign-ups skip
+  // email verification, and analytics writes are optional. The D1 database is found by name, so no
+  // database_id is committed and wrangler reuses the existing dietbox-preview-db on each deploy.
+  "env": {
+    "preview": {
+      "name": "dietbox-preview",
+      "vars": {
+        "APP_NAME": "Dietbox",
+        "APP_ENV": "preview",
+        "APP_URL": "https://dietbox-preview.khanjer496.workers.dev",
+        "BETTER_AUTH_URL": "https://dietbox-preview.khanjer496.workers.dev",
+        "EMAIL_FROM": "Dietbox <noreply@example.com>",
+        "TURNSTILE_SITE_KEY": ""
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "dietbox-preview-db",
+          "migrations_dir": "db/migrations"
+        }
+      ]
+    }
+  }
+}

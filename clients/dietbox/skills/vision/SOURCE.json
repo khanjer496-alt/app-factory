@@ -1,0 +1,11 @@
+{
+  "upstream": "https://github.com/kunchenguid/vision",
+  "default_branch": "main",
+  "vendored_files": {
+    "SKILL.md": "dd1c527fa2a8a357bc408b82fc4043163fbc662f",
+    "LICENSE": "b86858d37f88067ebba8d8a1f967102ca360fc05",
+    "assets/review-template.html": "fef2bd2f4beb7218c546d06eb973e711e6ad1c61",
+    "assets/review.css": "97d24f0ad32d88b6be56457f6b149e9191002634"
+  },
+  "purpose": "Pinned source metadata for the vendored /vision Agent Skill."
+}
