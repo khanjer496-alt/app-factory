@@ -31,19 +31,25 @@ Verification emails are written to `.wrangler/tmp/email/…` locally (path print
 
 ## Client preview (workers.dev)
 
-Live at https://dietbox-preview.elemental-canopy.workers.dev. Cloudflare **Workers Builds** redeploys it on every push, so no API token lives outside Cloudflare. To connect it, go to Workers & Pages → `dietbox-preview` → Settings → Build → Connect, then set:
+Cloudflare **Workers Builds** redeploys the preview on every push, so no API token lives outside Cloudflare. In the Cloudflare account that should host it, go to Workers & Pages → Create → Import a repository (or, for an existing Worker, Settings → Build → Connect), then set:
 
 | Setting | Value |
 | --- | --- |
+| Project / Worker name | `dietbox-preview` |
 | Repository | `khanjer496-alt/app-factory` |
 | Branch | the branch to preview (`main` once merged) |
 | Root directory | `clients/dietbox` |
 | Build command | `npm run build:preview` |
-| Deploy command | `npm run deploy:preview` (applies D1 migrations, then deploys) |
+| Deploy command | `npm run deploy:preview` |
 | Build watch paths | include `clients/dietbox/*` |
 | Non-production branch builds | off |
 
-The D1 database is looked up by name (`dietbox-preview-db`), and the preview URL is committed in `wrangler.jsonc` → `env.preview.vars`. Secrets (`BETTER_AUTH_SECRET`, `DEMO_CHECKOUT`) live on the Worker and survive deploys.
+`npm run deploy:preview` (`scripts/deploy-preview-ci.sh`) works in any account:
+- it finds or creates the `dietbox-preview-db` D1 database and applies migrations;
+- it points `APP_URL` / `BETTER_AUTH_URL` at that account's `https://dietbox-preview.<subdomain>.workers.dev`;
+- it creates `BETTER_AUTH_SECRET` (random) and `DEMO_CHECKOUT=true` on the first deploy.
+
+To move the preview to another account, connect the repo there. The new account gets a new URL and an empty database.
 
 Manual alternative from a machine with a token:
 
