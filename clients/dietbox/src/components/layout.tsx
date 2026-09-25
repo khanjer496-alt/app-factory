@@ -19,10 +19,17 @@ export function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
   const overDark = DARK_TOP_ROUTES.includes(pathname) && !scrolled && !open;
 
   return (
-    <header className={`nav ${overDark ? "overDark" : "solid"} ${scrolled ? "scrolled" : ""}`}>
+    <>
+    <header className={`nav ${open ? "open" : overDark ? "overDark" : "solid"} ${scrolled ? "scrolled" : ""}`}>
       <div className="navInner">
         <Logo tone={overDark || open ? "volt" : "black"} height={30} />
         <nav className="navLinks" aria-label="Primary">
@@ -34,20 +41,24 @@ export function Nav() {
         <div className="navActions">
           {session ? <Link to="/app" className="navText">My plan</Link> : <Link to="/login" className="navText">Sign in</Link>}
           <Link to="/start" className="btn primary sm">Build my plan</Link>
-          <button className="burger" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label="Menu" type="button"><i /><i /></button>
+          <button className="burger" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? "Close menu" : "Open menu"} type="button"><i /><i /></button>
         </div>
       </div>
-      <AnimatePresence>
-        {open && (
-          <motion.div className="mobileMenu" initial={{ clipPath: "inset(0 0 100% 0)" }} animate={{ clipPath: "inset(0 0 0% 0)" }} exit={{ clipPath: "inset(0 0 100% 0)" }} transition={{ duration: 0.5, ease: [0.77, 0, 0.175, 1] }}>
-            {[["/menu", "Menu"], ["/#plans", "Plans"], ["/#how", "How it works"], ["/#faq", "FAQ"], [session ? "/app" : "/login", session ? "My plan" : "Sign in"]].map(([to, label], i) => (
-              <motion.a key={to} href={to} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>{label}</motion.a>
-            ))}
-            <Link to="/start" className="btn primary lg">Build my plan</Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </header>
+    {/* Rendered outside <header>: the header's backdrop-filter would otherwise become the containing block and collapse this fixed overlay. */}
+    <AnimatePresence>
+        {open && (
+          <motion.nav id="mobile-menu" aria-label="Mobile" className="mobileMenu" initial={{ clipPath: "inset(0 0 100% 0)" }} animate={{ clipPath: "inset(0 0 0% 0)" }} exit={{ clipPath: "inset(0 0 100% 0)" }} transition={{ duration: 0.5, ease: [0.77, 0, 0.175, 1] }}>
+            {[["/menu", "Menu"], ["/#plans", "Plans"], ["/#how", "How it works"], ["/#faq", "FAQ"], [session ? "/app" : "/login", session ? "My plan" : "Sign in"]].map(([to, label], i) => (
+              <motion.div key={to} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+                <Link to={to} className="mobileLink" onClick={() => setOpen(false)}>{label}</Link>
+              </motion.div>
+            ))}
+            <Link to="/start" className="btn primary lg" onClick={() => setOpen(false)}>Build my plan</Link>
+          </motion.nav>
+        )}
+    </AnimatePresence>
+    </>
   );
 }
 

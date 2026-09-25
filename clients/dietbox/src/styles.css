@@ -114,9 +114,9 @@ button { font: inherit; color: inherit; }
 .burger i:first-child { top: 17px; } .burger i:last-child { top: 25px; }
 .burger[aria-expanded="true"] i:first-child { transform: translateY(4px) rotate(45deg); }
 .burger[aria-expanded="true"] i:last-child { transform: translateY(-4px) rotate(-45deg); }
-.nav:has(.mobileMenu) { color: var(--bone); background: var(--carbon); }
-.mobileMenu { position: fixed; inset: var(--nav-h) 0 0; background: var(--carbon); color: var(--bone); padding: 32px var(--gutter); display: flex; flex-direction: column; gap: 6px; }
-.mobileMenu a:not(.btn) { font-family: var(--font-display); font-weight: 900; font-stretch: 68%; font-style: italic; text-transform: uppercase; font-size: 52px; line-height: 1.05; text-decoration: none; }
+.nav.open { color: var(--bone); background: var(--carbon); }
+.mobileMenu { position: fixed; z-index: 49; top: var(--nav-h); left: 0; right: 0; height: calc(100dvh - var(--nav-h)); overflow-y: auto; overscroll-behavior: contain; background: var(--carbon); color: var(--bone); padding: 32px var(--gutter) calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 6px; }
+.mobileMenu .mobileLink { display: block; padding: 6px 0; font-family: var(--font-display); font-weight: 900; font-stretch: 68%; font-style: italic; text-transform: uppercase; font-size: 52px; line-height: 1.05; text-decoration: none; color: inherit; }
 .mobileMenu .btn { margin-top: auto; }
 
 /* ---------- Layout ---------- */
