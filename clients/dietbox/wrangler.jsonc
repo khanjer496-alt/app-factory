@@ -54,8 +54,8 @@
       "vars": {
         "APP_NAME": "Dietbox",
         "APP_ENV": "preview",
-        "APP_URL": "https://dietbox-preview.elemental-canopy.workers.dev",
-        "BETTER_AUTH_URL": "https://dietbox-preview.elemental-canopy.workers.dev",
+        "APP_URL": "https://dietbox-preview.khanjer496.workers.dev",
+        "BETTER_AUTH_URL": "https://dietbox-preview.khanjer496.workers.dev",
         "EMAIL_FROM": "Dietbox <noreply@example.com>",
         "TURNSTILE_SITE_KEY": ""
       },
