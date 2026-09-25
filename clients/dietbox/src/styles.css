@@ -538,6 +538,11 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.18); }
 .swapOpt img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; }
 .swapOpt span { display: grid; gap: 8px; padding: 0 4px; }
 .swapCurrent { position: absolute; top: 18px; left: 18px; padding: 4px 10px; border-radius: var(--r-pill); background: var(--volt); font-style: normal; font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.renewCard { display: flex; align-items: center; justify-content: space-between; gap: 18px 28px; flex-wrap: wrap; padding: 22px 24px; margin: -8px 0 28px; border-radius: var(--r-card); background: var(--chalk); box-shadow: inset 0 0 0 1px var(--line); }
+.renewCard.alert { box-shadow: inset 0 0 0 1.5px var(--danger), 0 0 0 4px rgba(198,45,31,.12); }
+.renewCard .display.s { margin: 8px 0 0; }
+.renewCard .fine { margin-top: 6px; max-width: 520px; }
+.renewActions { display: flex; flex-wrap: wrap; gap: 8px; }
 .accountPanel { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); }
 .accountPanel h3 { margin: 0 0 14px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--smoke); }
 .toast { position: fixed; left: 50%; bottom: 24px; z-index: 120; translate: -50% 0; padding: 14px 22px; border-radius: var(--r-pill); background: var(--carbon); color: var(--bone); font-weight: 650; box-shadow: var(--shadow-float), inset 0 0 0 1px var(--line-dark); max-width: calc(100vw - 32px); }

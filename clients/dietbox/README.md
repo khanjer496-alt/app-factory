@@ -57,7 +57,7 @@ The `preview` environment has its own D1 database. Sign-ups skip email verificat
 
 ## Payments
 
-Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`, point a Stripe webhook at `/api/billing/webhook` (`checkout.session.completed`). `DEMO_CHECKOUT` only works when `APP_ENV=development` **and** Stripe is not configured.
+Plans are Stripe subscriptions that renew every 1, 2 or 4 weeks. Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` and point a Stripe webhook at `/api/billing/webhook` with these events: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`, `customer.subscription.deleted`. In Stripe, turn on the customer portal (payment method updates) and Smart Retries. The daily cron (`triggers.crons`, 09:00 UAE) sends reminders and keeps charge dates aligned with skips and pauses. In demo mode it also "charges" due renewals, so the preview shows renewals without Stripe. `DEMO_CHECKOUT` only works when `APP_ENV=development` **and** Stripe is not configured.
 
 ## Tests
 

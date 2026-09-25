@@ -276,7 +276,7 @@ function Pricing() {
     <section className="section pricing" id="plans">
       <div className="sectionHead center">
         <Eyebrow>{t("Plans & pricing")}</Eyebrow>
-        <Lines className="display l" lines={[t("Straight prices."), <em key="p">{t("No subscription traps.")}</em>]} />
+        <Lines className="display l" lines={[t("Straight prices."), <em key="p">{t("Cancel anytime.")}</em>]} />
         <div className="pricingControls">
           <Segmented id="p-meals" label={t("Meals a day")} value={mealsPerDay} onChange={setMeals} options={[["2", "2"], ["3", "3"], ["4", t("3 + snack")], ["5", t("3 + 2 snacks")]]} />
           <Segmented id="p-weeks" label={t("Plan length")} value={weeks} onChange={setWeeks} options={[["1", t("1 week")], ["2", t("2 weeks")], ["4", t("4 weeks")]]} />
@@ -311,7 +311,7 @@ function Guarantees() {
     [t("48h"), t("Swap or skip until 48 hours before delivery")],
     ["5–8", t("Morning delivery, before work")],
     ["7/7", t("Every emirate, free delivery")],
-    ["1×", t("One payment. Plans never auto-renew")],
+    ["0", t("Contracts. Pause or cancel anytime")],
   ];
   return (
     <section className="section promise">
@@ -334,8 +334,8 @@ function Faq() {
   const faq = [
     [t("How does delivery work?"), t("Choose a morning (5–8 AM) or night-before (6–10 PM) window. All the day's meals arrive together in an insulated bag. Keep them refrigerated and heat mains for about 2 minutes.")],
     [t("Can I change meals?"), t("Yes. Each day has a rotating menu per programme. Swap any dish until 48 hours before that delivery.")],
-    [t("What if I travel?"), t("Skip any day from your dashboard, 48 hours ahead. It isn't lost. We add a delivery day to the end of your plan.")],
-    [t("Is this a subscription?"), t("No. You buy a 1, 2 or 4-week plan upfront and it doesn't auto-renew. Renew when you're ready.")],
+    [t("What if I travel?"), t("Pause for up to 4 weeks, or skip single days, from your dashboard 48 hours ahead. Nothing is lost: the days move to the end of your plan and your next charge moves with them.")],
+    [t("Is this a subscription?"), t("Yes, a flexible one. Your plan renews every 1, 2 or 4 weeks until you cancel. We email you before your first renewal, and your dashboard always shows the next charge date. Turn off renewal anytime, with no fees.")],
     [t("Do you handle allergies?"), t("Every dish lists the 8 major allergens. Our kitchen handles nuts, gluten, dairy and sesame, so we can't guarantee there's no cross-contact.")],
   ];
   const [open, setOpen] = useState<number | null>(0);

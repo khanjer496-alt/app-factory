@@ -5,8 +5,19 @@ import { aed, dateLong, dateMedium } from "../lib/format";
 import { Eyebrow } from "../components/brand";
 
 interface Kitchen { date: string; dishes: { meal_id: string; program: string; portions: number }[]; drops: { emirate: string; delivery_slot: string; drops: number }[] }
-interface Order { id: string; email: string; program: string; meals_per_day: number; days_per_week: number; weeks: number; start_date: string; amount_fils: number; status: string; created_at: number }
-interface Overview { users: number; activeSubscriptions: number; failedWebhooks: number }
+interface Order {
+  id: string; email: string; program: string; meals_per_day: number; days_per_week: number; weeks: number; start_date: string; amount_fils: number; status: string; created_at: number;
+  auto_renew: number; billing_status: "none" | "active" | "past_due" | "canceled"; next_charge_at: number | null; cycle: number;
+}
+interface Overview { users: number; activeSubscriptions: number; failedWebhooks: number; plans: { active: number; renewing: number; pastDue: number; renewingThisWeek: number } }
+
+function renewalLabel(o: Order) {
+  if (o.status !== "active") return "—";
+  if (o.billing_status === "past_due") return "Payment failed";
+  if (o.billing_status === "none") return "One-off";
+  if (o.billing_status === "canceled" || !o.auto_renew) return "Off · ends";
+  return o.next_charge_at ? `Renews ${dateMedium(marketToday(new Date(o.next_charge_at)))}` : "Renewing";
+}
 
 // Admin access is enforced server-side (requireAdmin); this page only renders what the API allows.
 export default function Admin() {
@@ -18,9 +29,15 @@ export default function Admin() {
   const [error, setError] = useState("");
 
   useEffect(() => { api<Overview>("/api/admin/overview").then(setOverview).catch((e) => setError(String(e.message || e))); }, []);
+  const loadOrders = () => api<Order[]>("/api/admin/orders").then(setOrders).catch((e) => setError(String(e.message || e)));
+  async function stopRenewal(o: Order) {
+    if (!confirm(`Stop renewal for ${o.email}? Paid deliveries continue; no further charges.`)) return;
+    try { await api(`/api/admin/orders/${o.id}/renewal`, { method: "POST", body: JSON.stringify({ autoRenew: false }) }); await loadOrders(); }
+    catch (e) { setError(String((e as Error).message || e)); }
+  }
   useEffect(() => {
     if (tab === "kitchen") api<Kitchen>(`/api/admin/kitchen?date=${date}`).then(setKitchen).catch((e) => setError(String(e.message || e)));
-    else api<Order[]>("/api/admin/orders").then(setOrders).catch((e) => setError(String(e.message || e)));
+    else loadOrders();
   }, [tab, date]);
 
   const totalPortions = kitchen?.dishes.reduce((n, d) => n + d.portions, 0) || 0;
@@ -39,6 +56,9 @@ export default function Admin() {
       {overview && (
         <div className="statRow">
           <div className="stat"><span>Customers</span><b>{overview.users}</b></div>
+          <div className="stat"><span>Renewing plans</span><b>{overview.plans.renewing}</b></div>
+          <div className="stat"><span>Renew in 7 days</span><b>{overview.plans.renewingThisWeek}</b></div>
+          <div className="stat"><span>Payment failed</span><b>{overview.plans.pastDue}</b></div>
           <div className="stat"><span>Portions {dateMedium(date)}</span><b>{totalPortions}</b></div>
           <div className="stat"><span>Drops {dateMedium(date)}</span><b>{totalDrops}</b></div>
           <div className="stat"><span>Failed webhooks</span><b>{overview.failedWebhooks}</b></div>
@@ -79,7 +99,7 @@ export default function Admin() {
       {tab === "orders" && (
         <section className="adminCard">
           <table className="table">
-            <thead><tr><th>Customer</th><th>Plan</th><th>Starts</th><th>Status</th><th className="num">Amount</th></tr></thead>
+            <thead><tr><th>Customer</th><th>Plan</th><th>Starts</th><th>Status</th><th>Renewal</th><th className="num">Cycle</th><th className="num">Per cycle</th><th /></tr></thead>
             <tbody>
               {orders.map((o) => (
                 <tr key={o.id}>
@@ -87,7 +107,10 @@ export default function Admin() {
                   <td>{PROGRAMS_BY_ID[o.program]?.name} · {o.meals_per_day}×{o.days_per_week} · {o.weeks}w</td>
                   <td>{dateMedium(o.start_date)}</td>
                   <td><span className={`status ${o.status}`}>{o.status.replace("_", " ")}</span></td>
+                  <td>{renewalLabel(o)}</td>
+                  <td className="num">{o.cycle}</td>
                   <td className="num">{aed(o.amount_fils)}</td>
+                  <td>{o.status === "active" && o.auto_renew === 1 && ["active", "past_due"].includes(o.billing_status) && <button className="btn ghost sm" type="button" onClick={() => stopRenewal(o)}>Stop renewal</button>}</td>
                 </tr>
               ))}
             </tbody>

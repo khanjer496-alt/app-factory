@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { EMIRATES, MEALS_BY_ID, PROGRAMS_BY_ID, SLOTS_BY_MEALS, menuFor, scaled, slotCategory, type Meal, type ProgramId, type Slot } from "../../shared/catalog";
+import { EMIRATES, MEALS_BY_ID, PROGRAMS_BY_ID, SLOTS_BY_MEALS, addDays, earliestStart, marketToday, menuFor, scaled, slotCategory, type Meal, type ProgramId, type Slot } from "../../shared/catalog";
+import { MAX_PAUSE_DAYS } from "../../shared/renewal";
 import { macroSplit } from "../../shared/nutrition";
 import { api } from "../lib/api";
 import { authClient } from "../lib/auth-client";
@@ -16,8 +17,9 @@ interface Day { date: string; status: "scheduled" | "skipped"; editable: boolean
 interface Address { emirate: string; area: string; street: string; unit: string; phone: string; notes: string }
 interface PlanResponse {
   order: null | { id: string; program: ProgramId; meals_per_day: number; days_per_week: number; weeks: number; start_date: string; delivery_slot: string; kcal_target: number | null; amount_fils: number; status: string };
-  address?: Address; days?: Day[]; remainingDays?: number; today?: string;
+  renewal?: Renewal; address?: Address; days?: Day[]; remainingDays?: number; today?: string;
 }
+interface Renewal { autoRenew: boolean; status: "none" | "active" | "past_due" | "canceled"; nextChargeAt: number | null; cycle: number; canManageCard: boolean }
 
 export default function Dashboard() {
   const { data: session } = authClient.useSession();
@@ -139,7 +141,7 @@ export default function Dashboard() {
             <div><dt>{t("Meals")}</dt><dd>{t("{m}/day · {d} days/wk", { m: order.meals_per_day, d: order.days_per_week })}</dd></div>
             <div><dt>{t("Deliveries left")}</dt><dd className="tabular">{plan.remainingDays}</dd></div>
             <div><dt>{t("Window")}</dt><dd>{order.delivery_slot === "morning" ? t("5–8 AM") : t("6–10 PM, night before")}</dd></div>
-            <div><dt>{t("Paid")}</dt><dd>{aed(order.amount_fils)}</dd></div>
+            <div><dt>{order.weeks === 1 ? t("Every week") : t("Every {w} weeks", { w: order.weeks })}</dt><dd>{aed(order.amount_fils)}</dd></div>
           </dl>
           {plan.address && (
             <p className="planAddress">
@@ -149,6 +151,10 @@ export default function Dashboard() {
           )}
         </div>
       </section>
+
+      {order.status === "active" && plan.renewal && (
+        <RenewalCard plan={plan as Required<PlanResponse>} onChanged={load} flash={flash} />
+      )}
 
       {plan.days && plan.days.length > 0 ? (
         <>
@@ -243,6 +249,90 @@ export default function Dashboard() {
         {toast && <motion.div className="toast" role="status" initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, transition: { duration: 0.15 } }} transition={{ duration: 0.35, ease: EASE_OUT }}>{toast}</motion.div>}
       </AnimatePresence>
     </main>
+  );
+}
+
+const lastDelivery = (days: Day[] = []) => days.filter((d) => d.status === "scheduled").at(-1)?.date;
+
+function RenewalCard({ plan, onChanged, flash }: { plan: Required<PlanResponse>; onChanged: () => Promise<unknown>; flash: (m: string) => void }) {
+  const { t } = useI18n();
+  const [pausing, setPausing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const order = plan.order!;
+  const r = plan.renewal;
+  const last = lastDelivery(plan.days);
+
+  async function run(fn: () => Promise<void>) {
+    setBusy(true);
+    try { await fn(); } catch (e) { flash(e instanceof Error ? t(e.message) : t("Something went wrong")); } finally { setBusy(false); }
+  }
+  const toggle = (on: boolean) => run(async () => {
+    if (!on && !confirm(last ? t("Turn off renewal? Your paid deliveries continue until {date} and you won't be charged again.", { date: dateLong(last) }) : t("Turn off renewal? You won't be charged again."))) return;
+    await api("/api/plan/renewal", { method: "POST", body: JSON.stringify({ autoRenew: on }) });
+    await onChanged();
+    flash(on ? t("Renewal is back on.") : t("Renewal turned off. No more charges."));
+  });
+  const manageCard = () => run(async () => {
+    const { url } = await api<{ url: string }>("/api/plan/billing-portal", { method: "POST", body: "{}" });
+    window.location.href = url;
+  });
+
+  const renewing = r.autoRenew && r.status === "active";
+  const chargeDate = r.nextChargeAt ? marketToday(new Date(r.nextChargeAt)) : null;
+  return (
+    <section className={`renewCard ${r.status === "past_due" ? "alert" : ""}`} aria-label={t("Renewal")}>
+      <div className="renewText">
+        <Eyebrow>{r.status === "past_due" ? t("Payment failed") : renewing ? t("Auto-renew on") : r.status === "none" ? t("One-off plan") : t("Auto-renew off")}</Eyebrow>
+        {r.status === "past_due" ? (
+          <><h2 className="display s">{t("Update your card to keep meals coming.")}</h2><p className="fine">{t("Your renewal payment didn't go through. We'll try again automatically, and your next deliveries start once it's paid.")}</p></>
+        ) : renewing && chargeDate ? (
+          <><h2 className="display s">{t("Renews {date}", { date: dateLong(chargeDate) })}</h2><p className="fine">{order.weeks === 1 ? t("{amount} for the next week of meals. Skips and pauses move this date.", { amount: aed(order.amount_fils) }) : t("{amount} for the next {w} weeks of meals. Skips and pauses move this date.", { amount: aed(order.amount_fils), w: order.weeks })}</p></>
+        ) : (
+          <><h2 className="display s">{last ? t("Last delivery {date}", { date: dateLong(last) }) : t("No deliveries left")}</h2><p className="fine">{r.status === "none" || r.status === "canceled" ? t("This plan won't renew. Start a new one after your last delivery.") : t("You won't be charged again unless you turn renewal back on.")}</p></>
+        )}
+      </div>
+      <div className="renewActions">
+        {r.status === "past_due" && r.canManageCard && <button className="btn primary sm" type="button" disabled={busy} onClick={manageCard}>{t("Update card")}</button>}
+        {last && <button className="btn secondary sm" type="button" disabled={busy} onClick={() => setPausing(true)}>{t("Pause deliveries")}</button>}
+        {renewing && r.canManageCard && <button className="btn ghost sm" type="button" disabled={busy} onClick={manageCard}>{t("Payment details")}</button>}
+        {(renewing || r.status === "past_due") && <button className="btn ghost sm" type="button" disabled={busy} onClick={() => toggle(false)}>{t("Turn off renewal")}</button>}
+        {!r.autoRenew && r.status === "active" && <button className="btn primary sm" type="button" disabled={busy} onClick={() => toggle(true)}>{t("Turn renewal back on")}</button>}
+      </div>
+      <Sheet open={pausing} onClose={() => setPausing(false)} label={t("Pause deliveries")}>
+        <PauseForm onDone={async (resumesOn) => { setPausing(false); await onChanged(); flash(t("Paused. Deliveries resume {date}.", { date: dateMedium(resumesOn) })); }} />
+      </Sheet>
+    </section>
+  );
+}
+
+function PauseForm({ onDone }: { onDone: (resumesOn: string) => void }) {
+  const { t } = useI18n();
+  const min = earliestStart();
+  const [from, setFrom] = useState(min);
+  const [to, setTo] = useState(addDays(min, 6));
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const r = await api<{ resumesOn: string }>("/api/plan/pause", { method: "POST", body: JSON.stringify({ from, to }) });
+      onDone(r.resumesOn);
+    } catch (err) { setError(err instanceof Error ? t(err.message) : t("Could not pause")); }
+    finally { setBusy(false); }
+  }
+  return (
+    <form className="swapSheet" onSubmit={save}>
+      <Eyebrow>{t("Travelling?")}</Eyebrow>
+      <h2 className="display m">{t("Pause deliveries")}</h2>
+      <p className="lead">{t("Paused days aren't lost. They move to the end of your plan, and your next charge moves with them. Up to {n} days at a time.", { n: MAX_PAUSE_DAYS })}</p>
+      <div className="formGrid">
+        <label className="input"><span>{t("First day off")}</span><input type="date" min={min} value={from} onChange={(e) => { setFrom(e.target.value); if (e.target.value > to) setTo(e.target.value); }} required /></label>
+        <label className="input"><span>{t("Last day off")}</span><input type="date" min={from} max={addDays(from, MAX_PAUSE_DAYS - 1)} value={to} onChange={(e) => setTo(e.target.value)} required /></label>
+      </div>
+      {error && <p className="error">{error}</p>}
+      <button className="btn primary" disabled={busy}>{busy ? t("Saving…") : t("Pause deliveries")}</button>
+    </form>
   );
 }
 

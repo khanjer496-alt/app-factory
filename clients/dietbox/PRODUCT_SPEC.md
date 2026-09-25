@@ -4,13 +4,13 @@ Status: v1 redesign proposal · Owner: Dietbox (client) · Built with App Factor
 
 ## Summary
 
-Dietbox sells prepaid, chef-cooked meal plans portioned to a customer's goal and macros, delivered daily. This app replaces the current dietbox.ae website with a new brand system (`BRAND_GUIDELINES.md`), a marketing site and a working customer + kitchen web app.
+Dietbox sells auto-renewing (cancel anytime), chef-cooked meal plans portioned to a customer's goal and macros, delivered daily. This app replaces the current dietbox.ae website with a new brand system (`BRAND_GUIDELINES.md`), a marketing site and a working customer + kitchen web app.
 
 ## Market (explicit regional product — see GLOBAL_FIRST.md)
 
 1. **Target region:** United Arab Emirates only (delivery to all 7 emirates).
 2. **Languages:** English and Arabic. The switch is in the nav (`?lang=ar` also works). Arabic renders right-to-left with Alexandria and IBM Plex Sans Arabic, and keeps Latin digits. Strings live in `src/i18n/ar.ts` and dish names in `src/i18n/catalog-ar.ts`. `tests/i18n.test.ts` fails if a UI string has no Arabic entry. The kitchen admin screen stays English. The Arabic copy is machine-drafted, so a native copywriter should review it before launch.
-3. **Pricing/currency:** AED, VAT-inclusive (5%). Prices are computed server-side from `shared/catalog.ts` and charged via Stripe Checkout (`mode=payment`, `currency=aed`).
+3. **Pricing/currency:** AED, VAT-inclusive (5%). Prices are computed server-side from `shared/catalog.ts` and charged via Stripe Billing: Checkout `mode=subscription`, `currency=aed`, billed every 1, 2 or 4 weeks (the plan length) until cancelled.
 4. **Legal/compliance:** UAE PDPL (privacy), UAE consumer protection and health-advertising rules (no medical/guaranteed-result claims), allergen disclosure.
 5. **Acquisition channels:** Instagram/TikTok, gyms & studios partnerships, Google search (Dubai / Abu Dhabi), referral.
 6. **Global-compatible:** Intl formatting via `productConfig.market`, UTC timestamps, delivery calendar dates in the market time zone, international phone formats accepted.
@@ -27,9 +27,10 @@ Dietbox sells prepaid, chef-cooked meal plans portioned to a customer's goal and
 - **Landing** (`/`): brand story, programmes, how it works, draggable menu preview, macro calculator, pricing, FAQ.
 - **Menu** (`/menu`): full catalogue with category/diet/allergen filters and nutrition labels.
 - **Plan builder** (`/start`): Goal → Numbers (optional) → Rhythm → Delivery → Review & pay. Draft persists in `sessionStorage` through sign-up + email verification.
-- **Checkout**: `POST /api/orders` validates input, prices server-side, creates a `pending_payment` order and a Stripe Checkout session. The Stripe webhook activates the order only if user, amount and currency match.
-- **Dashboard** (`/app`): plan card, day strip, per-day meals with scaled macros, swap (within the day's programme menu), skip (postpones to end of plan), address edit, data export, account deletion.
-- **Kitchen control** (`/admin`): production sheet per date (dish × programme × portions), delivery drops, orders list. Admin enforced server-side.
+- **Checkout**: `POST /api/orders` validates input, prices server-side, creates a `pending_payment` order and a Stripe Checkout subscription session. The webhook activates the order only if user, amount and currency match. The review step discloses the renewal amount, cadence and how to cancel.
+- **Renewals**: each cycle is charged 3 days before its first delivery (before the 48h kitchen lock). Skips and pauses move the charge date with the deliveries (Stripe `trial_end`). `invoice.paid` adds the next cycle's delivery days after the last one. A failed renewal marks the plan past due, emails the customer and waits for Stripe's retries; no unpaid days are scheduled. A daily cron (09:00 UAE) aligns charge dates, sends renewal (all cycles of 2- and 4-week plans, the first renewal of weekly plans) and plan-ending reminders, and closes finished plans. Account deletion cancels the subscription.
+- **Dashboard** (`/app`): plan card, renewal card (next charge date and amount, turn renewal off/on, pause up to 28 days, update card via the Stripe customer portal, past-due banner), day strip, per-day meals with scaled macros, swap (within the day's programme menu), skip (postpones to end of plan), address edit, data export, account deletion.
+- **Kitchen control** (`/admin`): production sheet per date (dish × programme × portions), delivery drops, orders list with renewal status/cycle/next charge, renewal stats and an audited "stop renewal" action. Admin enforced server-side.
 
 ## Business rules
 
@@ -55,4 +56,4 @@ These are brand propositions written for the redesign. Dietbox must confirm or e
 
 ## Out of scope (next)
 
-Menu CMS in D1 for the kitchen team · promo codes · gift cards · renewals/auto-reorder · rider app / route optimisation · WhatsApp notifications via the email/notification adapter.
+Menu CMS in D1 for the kitchen team · promo codes · gift cards · programme changes between cycles · Arabic reminder emails · push reminders in the mobile apps · rider app / route optimisation · WhatsApp notifications via the email/notification adapter.

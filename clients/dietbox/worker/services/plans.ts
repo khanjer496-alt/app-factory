@@ -3,6 +3,7 @@ import {
   DELIVERY_SLOTS, EMIRATES, PROGRAMS_BY_ID, SLOTS_BY_MEALS, defaultSelections, deliveryDates, earliestStart, isIsoDate, isValidPlan,
   addDays, nextDeliveryDate, quote, type PlanInput, type ProgramId, type Slot,
 } from "../../shared/catalog";
+import { nextCycleStart } from "../../shared/renewal";
 import { audit } from "./audit";
 import { track } from "./analytics";
 
@@ -13,6 +14,8 @@ export interface OrderRow {
   id: string; user_id: string; address_id: string; program: ProgramId; meals_per_day: number; days_per_week: number; weeks: number;
   start_date: string; delivery_slot: string; kcal_target: number | null; amount_fils: number; currency: string; status: string;
   stripe_session_id: string | null; created_at: number; updated_at: number;
+  auto_renew: number; billing_status: "none" | "active" | "past_due" | "canceled"; cycle: number; next_charge_at: number | null;
+  stripe_subscription_id: string | null; stripe_customer_id: string | null;
 }
 
 const str = (value: unknown, max: number) => (typeof value === "string" ? value.trim().slice(0, max) : "");
@@ -61,22 +64,58 @@ export async function createPendingOrder(env: Env, userId: string, input: OrderI
 }
 
 /**
- * Idempotently activates a paid order: generates delivery days and chef's-pick selections.
- * Only transitions pending_payment → active; repeated webhooks are no-ops.
+ * Idempotently activates a paid order: generates the first cycle's delivery days and chef's-pick selections.
+ * Only pending_payment → active is claimed; a retried webhook re-runs the (INSERT OR IGNORE) day generation
+ * until cycle 1 is recorded, so a failure halfway through is repaired rather than lost.
  */
-export async function activateOrder(env: Env, orderId: string, stripeSessionId: string | null) {
-  const claimed = await env.DB.prepare("UPDATE plan_orders SET status='active',stripe_session_id=COALESCE(?,stripe_session_id),updated_at=? WHERE id=? AND status='pending_payment'")
-    .bind(stripeSessionId, Date.now(), orderId).run();
-  if ((claimed.meta?.changes || 0) === 0) return false;
-  const order = await env.DB.prepare("SELECT * FROM plan_orders WHERE id=?").bind(orderId).first<OrderRow>();
-  if (!order) return false;
+export async function activateOrder(env: Env, orderId: string, paymentRef: string | null, billing: { renews: boolean; subscriptionId?: string; customerId?: string | null }) {
   const now = Date.now();
+  const claimed = await env.DB.prepare(`UPDATE plan_orders SET status='active',stripe_session_id=COALESCE(?,stripe_session_id),
+      auto_renew=?,billing_status=?,stripe_subscription_id=?,stripe_customer_id=?,updated_at=? WHERE id=? AND status='pending_payment'`)
+    .bind(paymentRef, billing.renews ? 1 : 0, billing.renews ? "active" : "none", billing.subscriptionId ?? null, billing.customerId ?? null, now, orderId).run();
+  const order = await env.DB.prepare("SELECT * FROM plan_orders WHERE id=?").bind(orderId).first<OrderRow>();
+  if (!order || order.status !== "active") return false;
+  const recorded = await env.DB.prepare("SELECT 1 AS ok FROM plan_cycles WHERE order_id=? AND cycle=1").bind(orderId).first();
+  if (recorded) return (claimed.meta?.changes || 0) > 0;
   const dates = deliveryDates(order.start_date, order.days_per_week, order.days_per_week * order.weeks);
+  await insertDays(env, order, dates, now);
+  await env.DB.prepare("INSERT OR IGNORE INTO plan_cycles(order_id,cycle,payment_ref,amount_fils,first_date,last_date,created_at) VALUES(?,1,?,?,?,?,?)")
+    .bind(orderId, paymentRef || `demo:${orderId}:1`, order.amount_fils, dates[0], dates[dates.length - 1], now).run();
+  if ((claimed.meta?.changes || 0) > 0) {
+    await audit(env, { actor: order.user_id, action: "plan_order.activate", resourceType: "plan_order", resourceId: orderId });
+    track(env, { actor: order.user_id, event: "plan_activated", feature: order.program, value: order.amount_fils / 100 });
+  }
+  return true;
+}
+
+/**
+ * Adds the next paid cycle after the last delivery day. Idempotent per payment reference: a repeated
+ * invoice webhook re-inserts the same (INSERT OR IGNORE) days instead of adding a second cycle.
+ */
+export async function appendCycle(env: Env, order: OrderRow, paymentRef: string, amountFils: number, now = new Date()) {
+  const count = order.days_per_week * order.weeks;
+  const existing = await env.DB.prepare("SELECT first_date FROM plan_cycles WHERE payment_ref=? AND order_id=?").bind(paymentRef, order.id).first<{ first_date: string }>();
+  if (existing) {
+    await insertDays(env, order, deliveryDates(existing.first_date, order.days_per_week, count), now.getTime());
+    return null;
+  }
+  const last = await env.DB.prepare("SELECT MAX(date) AS last FROM delivery_days WHERE order_id=?").bind(order.id).first<{ last: string | null }>();
+  const dates = deliveryDates(nextCycleStart(last?.last || addDays(order.start_date, -1), order.days_per_week, now), order.days_per_week, count);
+  const cycle = order.cycle + 1;
+  const claimed = await env.DB.prepare("INSERT OR IGNORE INTO plan_cycles(order_id,cycle,payment_ref,amount_fils,first_date,last_date,created_at) VALUES(?,?,?,?,?,?,?)")
+    .bind(order.id, cycle, paymentRef, amountFils, dates[0], dates[dates.length - 1], now.getTime()).run();
+  if ((claimed.meta?.changes || 0) === 0) throw new Error(`Cycle ${cycle} of ${order.id} is already recorded under another payment`);
+  await insertDays(env, order, dates, now.getTime());
+  // next_charge_at is cleared so syncNextCharge schedules the following renewal.
+  await env.DB.prepare("UPDATE plan_orders SET cycle=?,status='active',billing_status='active',next_charge_at=NULL,updated_at=? WHERE id=?").bind(cycle, now.getTime(), order.id).run();
+  await audit(env, { actor: order.user_id, action: "plan_order.renew", resourceType: "plan_order", resourceId: `${order.id}:${cycle}` });
+  track(env, { actor: order.user_id, event: "plan_renewed", feature: order.program, value: amountFils / 100 });
+  return { cycle, firstDate: dates[0], lastDate: dates[dates.length - 1] };
+}
+
+async function insertDays(env: Env, order: OrderRow, dates: string[], now: number) {
   const statements = dates.flatMap((date) => dayStatements(env, order, date, now));
   for (let i = 0; i < statements.length; i += 90) await env.DB.batch(statements.slice(i, i + 90));
-  await audit(env, { actor: order.user_id, action: "plan_order.activate", resourceType: "plan_order", resourceId: orderId });
-  track(env, { actor: order.user_id, event: "plan_activated", feature: order.program, value: order.amount_fils / 100 });
-  return true;
 }
 
 function dayStatements(env: Env, order: OrderRow, date: string, now: number) {
@@ -87,23 +126,35 @@ function dayStatements(env: Env, order: OrderRow, date: string, now: number) {
   ];
 }
 
-/** Skipping postpones: the day is marked skipped and one delivery day is appended after the last scheduled day. */
-export async function postponeDay(env: Env, order: OrderRow, date: string) {
+/**
+ * Skipping and pausing postpone: each scheduled day in `dates` is marked skipped and the same number of
+ * delivery days is appended after the last day (and after `resumeAfter`, so make-up days never land inside a pause).
+ */
+export async function postponeDays(env: Env, order: OrderRow, dates: string[], resumeAfter?: string) {
+  if (dates.length === 0) return [];
   const now = Date.now();
-  // Claim the skip first so concurrent/duplicate requests cannot append more than one make-up day.
-  const claimed = await env.DB.prepare("UPDATE delivery_days SET status='skipped',updated_at=? WHERE order_id=? AND user_id=? AND date=? AND status='scheduled'")
-    .bind(now, order.id, order.user_id, date).run();
-  if ((claimed.meta?.changes || 0) === 0) return null;
+  // Claim first so concurrent/duplicate requests cannot append more make-up days than were skipped.
+  const claimed = await env.DB.prepare(`UPDATE delivery_days SET status='skipped',updated_at=? WHERE order_id=? AND user_id=? AND status='scheduled' AND date IN (${dates.map(() => "?").join(",")}) RETURNING date`)
+    .bind(now, order.id, order.user_id, ...dates).all<{ date: string }>();
+  const skipped = claimed.results.map((r) => r.date);
+  if (skipped.length === 0) return [];
   const last = await env.DB.prepare("SELECT MAX(date) AS last FROM delivery_days WHERE order_id=?").bind(order.id).first<{ last: string }>();
-  const newDate = nextDeliveryDate(last?.last || date, order.days_per_week);
+  let cursor = last?.last || dates[dates.length - 1];
+  if (resumeAfter && resumeAfter > cursor) cursor = resumeAfter;
+  const added: string[] = [];
+  for (let i = 0; i < skipped.length; i++) added.push(cursor = nextDeliveryDate(cursor, order.days_per_week));
   try {
-    await env.DB.batch(dayStatements(env, order, newDate, now));
+    await insertDays(env, order, added, now);
   } catch (error) {
-    await env.DB.prepare("UPDATE delivery_days SET status='scheduled',updated_at=? WHERE order_id=? AND date=?").bind(Date.now(), order.id, date).run();
+    await env.DB.prepare(`UPDATE delivery_days SET status='scheduled',updated_at=? WHERE order_id=? AND date IN (${skipped.map(() => "?").join(",")})`).bind(Date.now(), order.id, ...skipped).run();
     throw error;
   }
-  await audit(env, { actor: order.user_id, action: "delivery_day.skip", resourceType: "plan_order", resourceId: `${order.id}:${date}` });
-  return newDate;
+  await audit(env, { actor: order.user_id, action: skipped.length > 1 ? "plan_order.pause" : "delivery_day.skip", resourceType: "plan_order", resourceId: `${order.id}:${skipped[0]}` });
+  return added;
+}
+
+export async function postponeDay(env: Env, order: OrderRow, date: string) {
+  return (await postponeDays(env, order, [date]))[0] ?? null;
 }
 
 export async function currentOrder(env: Env, userId: string) {

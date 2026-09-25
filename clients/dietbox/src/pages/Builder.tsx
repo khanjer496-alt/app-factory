@@ -269,10 +269,13 @@ function StepReview({ d, signedIn, onError }: { d: Draft; signedIn: boolean; onE
         <div className="rRow"><span>{t("Delivery")} · {t(DELIVERY_SLOTS.find((s) => s.id === d.deliverySlot)?.label || "")}</span><b>{t("Free")}</b></div>
         <div className="rRule" />
         <div className="rRow total"><span>{t("Total")} <small>{t("incl. VAT")}</small></span><b className="tabular">{aed(price.total)}</b></div>
-        <p className="fine">{t("First delivery {date} to {place}. One-off payment that doesn't auto-renew.", { date: dateLong(deliveryDates(d.startDate, d.daysPerWeek, 1)[0]), place: `${d.address.area}${t(", ")}${c.emirate(d.address.emirate)}` })}</p>
+        <p className="fine">{t("First delivery {date} to {place}.", { date: dateLong(deliveryDates(d.startDate, d.daysPerWeek, 1)[0]), place: `${d.address.area}${t(", ")}${c.emirate(d.address.emirate)}` })}</p>
+        <p className="fine renewNote">{d.weeks === 1
+          ? t("Renews every week for {amount} until you cancel. We charge 3 days before each new week and email you before the first renewal. Pause or cancel anytime in your dashboard.", { amount: aed(price.total) })
+          : t("Renews every {w} weeks for {amount} until you cancel. We charge 3 days before each new cycle and email you before every renewal. Pause or cancel anytime in your dashboard.", { amount: aed(price.total), w: d.weeks })}</p>
       </div>
       {signedIn ? (
-        <button type="button" className="btn primary lg block" disabled={busy || !valid} onClick={pay}>{busy ? t("Opening secure checkout…") : <>{t("Pay {amount}", { amount: aed(price.total) })} <Arrow /></>}</button>
+        <button type="button" className="btn primary lg block" disabled={busy || !valid} onClick={pay}>{busy ? t("Opening secure checkout…") : <>{t("Start plan · {amount}", { amount: aed(price.total) })} <Arrow /></>}</button>
       ) : (
         <div className="authGate">
           <p><b>{t("Last step:")}</b> {t("create an account to manage deliveries. Your plan is saved.")}</p>

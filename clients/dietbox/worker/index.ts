@@ -8,6 +8,7 @@ import { files } from "./routes/files";
 import { account } from "./routes/account";
 import { admin } from "./routes/admin";
 import { plans } from "./routes/plans";
+import { runDailyRenewals } from "./services/renewals";
 
 const app = new Hono<{ Bindings: Env }>();
 app.use("/api/*", secureHeaders());
@@ -32,4 +33,10 @@ app.route("/api", plans);
 app.notFound((c)=>c.json({error:"API route not found"},404));
 app.onError((err,c)=>{console.error(err);return c.json({error:"Internal server error"},500)});
 
-export default app;
+export default {
+  fetch: app.fetch,
+  // Daily at 09:00 UAE (wrangler.jsonc → triggers.crons): renewals, reminders, finished plans.
+  scheduled(_controller, env, ctx) {
+    ctx.waitUntil(runDailyRenewals(env));
+  },
+} satisfies ExportedHandler<Env>;

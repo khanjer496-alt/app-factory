@@ -6,7 +6,7 @@ import { resolvePrice, stripeClient, verifyStripeWebhook } from "../services/str
 import { sendPaymentFailed } from "../services/email";
 import { track } from "../services/analytics";
 import { productConfig } from "../../product.config";
-import { activateOrder } from "../services/plans";
+import { handleMealPlanEvent } from "../services/meal-billing";
 
 export const billing = new Hono<{ Bindings: Env; Variables: { session: any } }>();
 
@@ -65,16 +65,8 @@ billing.post("/webhook", async (c) => {
   `).bind(event.id,event.type,Date.now(),"processing").run();
   if ((claimed.meta?.changes || 0) === 0) return c.json({ received: true, duplicate: true });
   try {
-    if (event.type === "checkout.session.completed" && (event.data.object as Stripe.Checkout.Session).metadata?.kind === "meal_plan") {
-      const obj = event.data.object as Stripe.Checkout.Session;
-      const orderId = obj.metadata?.orderId;
-      const order = orderId ? await c.env.DB.prepare("SELECT user_id,amount_fils,currency FROM plan_orders WHERE id=?").bind(orderId).first<{ user_id: string; amount_fils: number; currency: string }>() : null;
-      // Activate only when the paid session matches the order we priced server-side.
-      if (order && obj.payment_status === "paid" && obj.client_reference_id === order.user_id && obj.amount_total === order.amount_fils && obj.currency === order.currency) {
-        await activateOrder(c.env, orderId!, obj.id);
-      } else {
-        throw new Error(`Meal-plan checkout ${obj.id} did not match order ${orderId || "(missing)"}`);
-      }
+    if (await handleMealPlanEvent(c.env, event, c.executionCtx)) {
+      // Meal plans (auto-renewing Dietbox subscriptions) are handled entirely by the meal-billing service.
     } else if (event.type === "checkout.session.completed") {
       const obj = event.data.object as Stripe.Checkout.Session;
       const userId = obj.client_reference_id || obj.metadata?.userId;
@@ -86,7 +78,7 @@ billing.post("/webhook", async (c) => {
         track(c.env,{actor:userId,event:"subscription_started",feature:obj.metadata?.plan||"pro"});
       }
     }
-    if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+    else if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
       const sub = event.data.object as Stripe.Subscription;
       const userId = sub.metadata?.userId;
       if (userId) {
@@ -95,7 +87,7 @@ billing.post("/webhook", async (c) => {
         if(event.type === "customer.subscription.deleted") track(c.env,{actor:userId,event:"subscription_cancelled"});
       }
     }
-    if (event.type === "invoice.payment_failed") {
+    else if (event.type === "invoice.payment_failed") {
       const invoice = event.data.object as Stripe.Invoice;
       const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
       if(customerId){

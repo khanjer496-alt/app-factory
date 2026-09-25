@@ -26,3 +26,17 @@ export function sendPaymentFailed(env: Env, to: string) {
 export function sendDeleteVerification(env: Env, to: string, url: string) {
   return sendEmail(env, { to, subject: `Confirm deletion of your ${env.APP_NAME} account`, text: `Confirm permanent account deletion: ${url}`, html: wrap("Confirm account deletion", "This permanently deletes your account and product data. If you did not request this, ignore this message.", "Delete my account", url) });
 }
+
+// ---------- Meal-plan renewals ----------
+export function sendRenewalReminder(env: Env, to: string, input: { date: string; amount: string; weeks: number }) {
+  const body = `Your Dietbox plan renews on ${input.date}. We'll charge ${input.amount} for the next ${input.weeks} week${input.weeks > 1 ? "s" : ""} of meals. To pause, change or stop renewing, open your plan before then.`;
+  return sendEmail(env, { to, subject: `Your Dietbox plan renews on ${input.date}`, text: `${body} ${env.APP_URL}/app`, html: wrap("Your plan renews soon", body, "Manage my plan", `${env.APP_URL}/app`) });
+}
+export function sendPlanEnding(env: Env, to: string, input: { lastDate: string }) {
+  const body = `Your last Dietbox delivery is on ${input.lastDate}. Your plan won't renew. Start a new one any time to keep the meals coming.`;
+  return sendEmail(env, { to, subject: "Your Dietbox plan is ending", text: `${body} ${env.APP_URL}/start`, html: wrap("Your plan is ending", body, "Start a new plan", `${env.APP_URL}/start`) });
+}
+export function sendRenewalFailed(env: Env, to: string) {
+  const body = "We couldn't charge your card for your next Dietbox cycle. Update your card so the next deliveries are cooked on time. We'll try again automatically.";
+  return sendEmail(env, { to, subject: "Your Dietbox renewal payment failed", text: `${body} ${env.APP_URL}/app`, html: wrap("Payment failed", body, "Update my card", `${env.APP_URL}/app`) });
+}

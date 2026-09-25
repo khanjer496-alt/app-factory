@@ -11,8 +11,8 @@ export const productConfig = {
     timeZone: "Asia/Dubai",
   },
   billing: {
-    // Meal plans are prepaid packages priced server-side from shared/catalog.ts (Stripe Checkout, mode=payment).
-    // The starter's recurring-subscription checkout is not used by Dietbox.
+    // Meal plans are auto-renewing Stripe subscriptions priced server-side from shared/catalog.ts
+    // (worker/services/meal-billing.ts). The starter's generic Pro-plan checkout is not used by Dietbox.
     enabled: false,
     plans: [
       { id: "meal-plan", name: "Meal plan package", priceLabel: "from AED 39/meal" },
