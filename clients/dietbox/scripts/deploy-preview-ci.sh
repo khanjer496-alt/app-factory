@@ -20,8 +20,9 @@ if [ -z "$ID" ]; then npx wrangler d1 create "$DB_NAME" >/dev/null; ID="$(db_id)
 [ -n "$ID" ] || { echo "Could not create or find $DB_NAME"; exit 1; }
 
 echo "→ workers.dev address"
-URL=""
-if [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+# PREVIEW_URL overrides the lookup (e.g. a local deploy logged in with `wrangler login`, where no API token is in the environment).
+URL="${PREVIEW_URL:-}"
+if [ -z "$URL" ] && [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
   SUB="$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" \
     | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.parse(s).result?.subdomain||""))' || true)"
   [ -n "$SUB" ] && URL="https://$WORKER.$SUB.workers.dev"
